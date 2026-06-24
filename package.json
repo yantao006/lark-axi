@@ -3,8 +3,17 @@
   "version": "0.1.0",
   "description": "Agent-facing AXI wrapper around the official Lark/Feishu lark-cli.",
   "type": "module",
+  "author": "yantao006 <yantao006@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yantao006/lark-axi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yantao006/lark-axi/issues"
+  },
+  "homepage": "https://github.com/yantao006/lark-axi#readme",
   "bin": {
-    "lark-axi": "./dist/cli.js"
+    "lark-axi": "dist/cli.js"
   },
   "files": [
     "dist",

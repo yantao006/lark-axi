@@ -35,10 +35,12 @@ lark-axi
 - Fetch document preview: \`lark-axi docs fetch --token <token>\`
 - Preview document creation: \`lark-axi docs create --title "<title>" --content "<markdown>" --dry-run\`
 - Use uncovered lark-cli operations: \`lark-axi raw <lark-cli args...>\`
+- Inspect command syntax: \`lark-axi help <command>\` or \`lark-axi <command> --help\`
 
 ## Rules
 
 - Prefer curated \`lark-axi\` commands before \`raw\`; curated commands return smaller agent-oriented output.
+- Read the count metadata on list commands: \`shown\`, \`total_observed\`, and \`limit\` tell you whether the compact response was capped.
 - Use \`--format json\` only when exact machine-readable fields are needed.
 - Use \`--full\` only after a truncated preview proves the full body is needed.
 - For writes, use \`--dry-run\` first unless the user has explicitly authorized the exact action.

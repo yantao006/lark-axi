@@ -1,24 +1,25 @@
 import type { GlobalOptions, RenderDocument } from "../types.js";
 import type { LarkCliAdapter } from "../lark/adapter.js";
-import { asRows, pickFields } from "./common.js";
+import { UsageError } from "../lark/errors.js";
+import { asRows, countRecord, pickFields } from "./common.js";
 
 export async function runRaw(adapter: LarkCliAdapter, argv: string[], options: GlobalOptions): Promise<RenderDocument> {
   if (argv.length === 0) {
-    return {
-      error: {
-        code: "USAGE_ERROR",
-        message: "raw requires lark-cli arguments",
-        help: "Example: lark-axi raw api GET /open-apis/calendar/v4/calendars",
-        exitCode: 2
-      },
-      sections: []
-    };
+    throw new UsageError("raw requires lark-cli arguments", "Example: lark-axi raw api GET /open-apis/calendar/v4/calendars");
   }
 
   const value = await adapter.json(argv);
-  const rows = pickFields(asRows(value), options.fields);
+  const allRows = pickFields(asRows(value), options.fields);
+  const limit = options.limit ?? 20;
+  const rows = allRows.slice(0, limit);
   return {
-    sections: [{ name: "raw", rows, fields: options.fields, empty: "0 results from lark-cli raw call" }],
-    help: ["Prefer curated lark-axi commands when available for smaller output."]
+    sections: [
+      { name: "raw_count", record: countRecord(allRows, rows.length, limit) },
+      { name: "raw", rows, fields: options.fields, empty: "0 results from lark-cli raw call" }
+    ],
+    help:
+      allRows.length > rows.length
+        ? ["Run `lark-axi --limit <n> raw <lark-cli args...>` to show more rows."]
+        : ["Prefer curated lark-axi commands when available for smaller output."]
   };
 }

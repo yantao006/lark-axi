@@ -25,7 +25,7 @@ export function renderDocument(document: RenderDocument, options: Pick<GlobalOpt
       const fields = section.fields ?? inferFields(section.rows);
       lines.push(...renderRows(section.name, section.rows, fields, section.empty ?? "0 results"));
     } else if (section.text) {
-      lines.push(`${section.name}: ${section.text}`);
+      lines.push(...renderText(section.name, section.text));
     }
   }
 
@@ -35,6 +35,11 @@ export function renderDocument(document: RenderDocument, options: Pick<GlobalOpt
   }
 
   return `${lines.join("\n")}\n`;
+}
+
+function renderText(name: string, text: string): string[] {
+  if (!text.includes("\n")) return [`${name}: ${text}`];
+  return [`${name}:`, ...text.split("\n").map((line) => `  ${line}`)];
 }
 
 function inferFields(rows: Record<string, unknown>[]): string[] {

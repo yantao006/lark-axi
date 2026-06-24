@@ -10,6 +10,20 @@ Agent-facing AXI wrapper around the official Lark/Feishu `lark-cli`.
 - `lark-cli` installed and available on `PATH`
 - Feishu/Lark auth handled by `lark-cli`
 
+## Installation
+
+From npm after release:
+
+```bash
+npm install -g lark-axi
+```
+
+Without a global install:
+
+```bash
+npx -y lark-axi
+```
+
 Check local state:
 
 ```bash
@@ -46,9 +60,27 @@ Global flags:
 - `--as user|bot` to forward identity selection.
 - `--debug` to print stack traces to stderr.
 
+Command help:
+
+```bash
+lark-axi im search --help
+lark-axi help docs fetch
+```
+
 ## Safety Model
 
 Curated mutation commands require `--dry-run` or `--execute`. Missing arguments fail before `lark-cli` is invoked. The wrapper never runs `lark-cli auth login` automatically.
+
+List commands include count metadata (`shown`, `total_observed`, `limit`) so agents can tell whether a compact response was capped. Detail commands truncate large text by default and include a `--full` escape hatch when content is truncated.
+
+## Agent Skill
+
+The installable skill lives at `skills/lark-axi/SKILL.md` and is generated from `src/skill/generate.ts`.
+
+```bash
+npm run skill:generate
+npm run skill:check
+```
 
 ## Development
 
@@ -68,3 +100,7 @@ npm run skill:generate
 ## Relationship to lark-cli
 
 `lark-cli` remains the source of truth for auth, scopes, API coverage, pagination, schema introspection, and Feishu platform behavior. `lark-axi` is the agent interface layer on top.
+
+## License
+
+MIT

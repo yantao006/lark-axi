@@ -2,15 +2,21 @@ import type { GlobalOptions, RenderDocument } from "../types.js";
 import type { LarkCliAdapter } from "../lark/adapter.js";
 import { UsageError } from "../lark/errors.js";
 import { requireMutationApproval } from "../safety/policy.js";
-import { asRows, pickFields, withForwardedGlobals } from "./common.js";
+import { asRows, countRecord, pickFields, withForwardedGlobals } from "./common.js";
 
 export async function imSearch(adapter: LarkCliAdapter, query: string | undefined, options: GlobalOptions): Promise<RenderDocument> {
   if (!query) throw new UsageError("im search requires --query", "Example: lark-axi im search --query \"project update\"");
   const value = await adapter.json(withForwardedGlobals(["im", "+messages-search", "--query", query, "--format", "json"], options));
   const fields = options.fields ?? ["message_id", "sender", "text", "create_time"];
-  const rows = pickFields(asRows(value).map(normalizeMessageRow), fields).slice(0, options.limit ?? 20);
+  const allRows = pickFields(asRows(value).map(normalizeMessageRow), fields);
+  const limit = options.limit ?? 20;
+  const rows = allRows.slice(0, limit);
   return {
-    sections: [{ name: "messages", rows, fields, empty: `0 messages found for ${query}` }]
+    sections: [
+      { name: "messages_count", record: countRecord(allRows, rows.length, limit) },
+      { name: "messages", rows, fields, empty: `0 messages found for ${query}` }
+    ],
+    help: allRows.length > rows.length ? ["Run `lark-axi im search --query \"<text>\" --limit <n>` to show more messages."] : undefined
   };
 }
 

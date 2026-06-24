@@ -45,7 +45,7 @@ After a significant change to command routing, adapters, output rendering, safet
 | ID | Area | Command | Expected Result | Risk |
 | --- | --- | --- | --- | --- |
 | T1 | Local install | `npm install && npm run check` | Dependencies install, build passes, unit tests pass, skill check passes. | none |
-| T2 | Runtime dashboard | `npm run dev --` | Shows `lark-cli` path/version, auth summary, discovered domains, and update hint when stale. | read-only |
+| T2 | Runtime dashboard | `npm run dev --` | Shows `lark-axi` binary path, description, `lark-cli` binary path/version, auth summary, discovered domains, and update hint when stale. | read-only |
 | T3 | Auth | `npm run dev -- auth status --format json` | JSON render contains brand, identity, default identity, user, and remediation hint only when needed. | read-only |
 | T4 | Calendar | `npm run dev -- calendar agenda --limit 3 --format json` | Returns compact event rows or explicit `0 upcoming calendar events`. | read-only |
 | T5 | IM search | `npm run dev -- im search --query "$LARK_AXI_IM_QUERY" --limit 2 --format json` | Returns compact message rows; should not return the full upstream envelope as a row. | read-only |
@@ -55,7 +55,8 @@ After a significant change to command routing, adapters, output rendering, safet
 | T9 | Sheets info | `npm run dev -- sheets info $LARK_AXI_SHEETS_ARGS --format json` | Returns spreadsheet metadata or a classified missing-resource/error. | read-only |
 | T10 | Task list | `npm run dev -- task list --limit 3 --format json` | Returns assigned tasks or explicit empty state. | read-only |
 | T11 | Markdown fetch | `npm run dev -- markdown fetch $LARK_AXI_MARKDOWN_ARGS --format json` | Returns markdown content/metadata or a classified missing-resource/error. | read-only |
-| T12 | Raw fallback | `npm run dev -- raw im +messages-mget --message-ids "$LARK_AXI_TEST_MESSAGE_ID" --as bot --format json` | Delegates to `lark-cli`, returns the test message, and suggests curated commands when applicable. | read-only |
+| T12 | Raw fallback | `npm run dev -- raw im +messages-mget --message-ids "$LARK_AXI_TEST_MESSAGE_ID" --as bot --format json` | Delegates to `lark-cli`, applies `--limit` (default 20) slicing, prepends count metadata (`shown`, `total_observed`, `limit`), returns the test message, and suggests curated commands when applicable. | read-only |
+| T12a | Per-command help | `npm run dev -- im search --help` and `npm run dev -- help docs fetch` | Shows command-specific usage, flags, and examples for the requested command; does not show the global command list. | none |
 | T13 | Safety block | `npm run dev -- im send --chat-id "$LARK_AXI_TEST_CHAT_ID" --text "$LARK_AXI_TEST_MESSAGE" --as bot --format json` | Fails before invoking `lark-cli` with a usage error requiring `--dry-run` or `--execute`. | no write |
 | T14 | IM dry-run | `npm run dev -- im send --chat-id "$LARK_AXI_TEST_CHAT_ID" --text "$LARK_AXI_TEST_MESSAGE" --dry-run --as bot --format json` | Shows planned send request and does not send a message. | dry-run |
 | T15 | Docs dry-run | `npm run dev -- docs create --title "lark-axi dry run" --content "hello" --dry-run --format json` | Shows planned document create request and does not create a document. | dry-run |
@@ -70,3 +71,4 @@ After a significant change to command routing, adapters, output rendering, safet
 - `docs fetch` must normalize `data.document.content` and force the v2 docs API.
 - `im search` must normalize `data.messages` into compact message rows.
 - Missing-scope errors must extract upstream `error.type`, `error.message`, and `error.hint` without proxy warnings or update envelopes.
+- All list commands (calendar agenda, im search, drive search, base records, sheets info, task list, raw) must prepend a count metadata section with `shown`, `total_observed`, and `limit`.

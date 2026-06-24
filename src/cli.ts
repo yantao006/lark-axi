@@ -33,7 +33,8 @@ export async function runCli(argv: string[], adapterOptions: LarkCliAdapterOptio
 }
 
 async function dispatch(adapter: LarkCliAdapter, positionals: string[], options: GlobalOptions, values: Record<string, FlagValue>): Promise<RenderDocument> {
-  if (values.help || positionals[0] === "help") return helpDocument();
+  if (values.help) return helpDocument(positionals);
+  if (positionals[0] === "help") return helpDocument(positionals.slice(1));
   if (positionals.length === 0) return home(adapter);
 
   const [domain, subcommand, ...rest] = positionals;
@@ -79,7 +80,9 @@ async function home(adapter: LarkCliAdapter): Promise<RenderDocument> {
       {
         name: "runtime",
         record: {
-          bin: collapseHome(version.executable),
+          bin: collapseHome(process.argv[1] ?? "lark-axi"),
+          description: "Agent-facing AXI wrapper around Lark/Feishu lark-cli",
+          lark_cli_bin: collapseHome(version.executable),
           lark_cli: version.version ?? "unknown",
           latest_seen: KNOWN_LATEST_LARK_CLI,
           update_hint: stale ? "lark-cli update" : ""
@@ -109,30 +112,135 @@ async function home(adapter: LarkCliAdapter): Promise<RenderDocument> {
   };
 }
 
-function helpDocument(): RenderDocument {
+interface HelpCommand {
+  command: string;
+  description: string;
+  usage: string;
+  flags: string;
+  examples: string;
+}
+
+const HELP_COMMANDS: HelpCommand[] = [
+  {
+    command: "auth status",
+    description: "Show lark-cli auth state",
+    usage: "lark-axi auth status [--format json]",
+    flags: "--format json; --profile <name>; --as user|bot",
+    examples: "lark-axi auth status"
+  },
+  {
+    command: "calendar agenda",
+    description: "List upcoming calendar events",
+    usage: "lark-axi calendar agenda [--limit N] [--fields a,b,c]",
+    flags: "--limit N; --fields summary,start_time,end_time,calendar_id; --format json",
+    examples: "lark-axi calendar agenda\nlark-axi calendar agenda --limit 50"
+  },
+  {
+    command: "im search",
+    description: "Search messages",
+    usage: "lark-axi im search --query <text> [--limit N] [--fields a,b,c]",
+    flags: "--query <text> required; --limit N; --fields message_id,sender,text,create_time",
+    examples: "lark-axi im search --query \"project update\"\nlark-axi im search --query \"release\" --fields message_id,text"
+  },
+  {
+    command: "im send",
+    description: "Preview or send a message",
+    usage: "lark-axi im send --chat-id <id> --text <text> --dry-run|--execute",
+    flags: "--chat-id <id> required; --text <text> required; exactly one of --dry-run or --execute",
+    examples: "lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run\nlark-axi im send --chat-id oc_xxx --text \"hello\" --execute"
+  },
+  {
+    command: "docs fetch",
+    description: "Fetch a doc preview",
+    usage: "lark-axi docs fetch --token <doc-token> [--full]",
+    flags: "--token <doc-token> required; --full disables content truncation",
+    examples: "lark-axi docs fetch --token <doc-token>\nlark-axi docs fetch --token <doc-token> --full"
+  },
+  {
+    command: "docs create",
+    description: "Preview or create a doc",
+    usage: "lark-axi docs create --title <title> --content <markdown> --dry-run|--execute",
+    flags: "--title <title> required; --content <markdown> required; exactly one of --dry-run or --execute",
+    examples: "lark-axi docs create --title \"Weekly\" --content \"# Progress\" --dry-run"
+  },
+  {
+    command: "drive search",
+    description: "Search Drive docs and files",
+    usage: "lark-axi drive search [lark-cli flags] [--limit N] [--fields a,b,c]",
+    flags: "--limit N; --fields a,b,c; forwards unknown flags to lark-cli",
+    examples: "lark-axi drive search --query \"roadmap\""
+  },
+  {
+    command: "base records",
+    description: "List Base records",
+    usage: "lark-axi base records [lark-cli flags] [--limit N] [--fields a,b,c]",
+    flags: "--limit N; --fields a,b,c; forwards unknown flags to lark-cli",
+    examples: "lark-axi base records --app-token <token> --table-id <id>"
+  },
+  {
+    command: "sheets info",
+    description: "Inspect spreadsheet metadata",
+    usage: "lark-axi sheets info [lark-cli flags]",
+    flags: "--fields a,b,c; forwards unknown flags to lark-cli",
+    examples: "lark-axi sheets info --spreadsheet-token <token>"
+  },
+  {
+    command: "task list",
+    description: "List tasks assigned to me",
+    usage: "lark-axi task list [--limit N] [--fields a,b,c]",
+    flags: "--limit N; --fields a,b,c; --format json",
+    examples: "lark-axi task list"
+  },
+  {
+    command: "raw",
+    description: "Delegate uncovered commands",
+    usage: "lark-axi [--limit N] [--fields a,b,c] raw <lark-cli args...>",
+    flags: "Place wrapper flags before `raw`; every argument after `raw` is passed through to lark-cli",
+    examples: "lark-axi raw api GET /open-apis/calendar/v4/calendars\nlark-axi --limit 5 raw api GET /open-apis/calendar/v4/calendars"
+  }
+];
+
+function helpDocument(positionals: string[] = []): RenderDocument {
+  const command = matchHelpCommand(positionals);
+  if (command) {
+    return {
+      title: `lark-axi help ${command.command}`,
+      sections: [
+        {
+          name: "command",
+          record: {
+            name: command.command,
+            description: command.description,
+            usage: command.usage,
+            flags: command.flags
+          }
+        },
+        {
+          name: "examples",
+          text: command.examples
+        }
+      ],
+      help: ["Global flags: --format json, --full, --debug, --profile <name>, --as user|bot, --fields a,b,c, --limit N"]
+    };
+  }
+
   return {
     title: "lark-axi help",
     sections: [
       {
         name: "commands",
-        rows: [
-          { command: "auth status", description: "Show lark-cli auth state" },
-          { command: "calendar agenda", description: "List upcoming calendar events" },
-          { command: "im search --query <text>", description: "Search messages" },
-          { command: "im send --chat-id <id> --text <text> --dry-run|--execute", description: "Preview or send a message" },
-          { command: "docs fetch --token <token>", description: "Fetch a doc preview" },
-          { command: "docs create --title <title> --content <markdown> --dry-run|--execute", description: "Preview or create a doc" },
-          { command: "drive search", description: "Search Drive docs and files" },
-          { command: "base records", description: "List Base records" },
-          { command: "sheets info", description: "Inspect spreadsheet metadata" },
-          { command: "task list", description: "List tasks assigned to me" },
-          { command: "raw <lark-cli args...>", description: "Delegate uncovered commands" }
-        ],
+        rows: HELP_COMMANDS.map(({ command, description }) => ({ command, description })),
         fields: ["command", "description"]
       }
     ],
     help: ["Global flags: --format json, --full, --debug, --profile <name>, --as user|bot, --fields a,b,c, --limit N"]
   };
+}
+
+function matchHelpCommand(positionals: string[]): HelpCommand | undefined {
+  if (positionals.length === 0) return undefined;
+  const requested = positionals.join(" ");
+  return HELP_COMMANDS.find((command) => command.command === requested);
 }
 
 async function safeAuth(adapter: LarkCliAdapter): Promise<Record<string, unknown>> {
