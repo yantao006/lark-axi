@@ -45,7 +45,7 @@ export function normalizeAuthStatus(status: Record<string, unknown>): AuthSummar
 function recordField(record: Record<string, unknown> | undefined, key: string): Record<string, unknown> | undefined {
   if (!record || !key) return undefined;
   const value = record[key];
-  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : undefined;
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
 }
 
 function stringField(record: Record<string, unknown> | undefined, key: string): string {
