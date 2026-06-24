@@ -128,7 +128,7 @@ lark-cli auth login --recommend
 | `lark-axi auth status` | Show compact identity state. |
 | `lark-axi calendar agenda` | List upcoming calendar events. |
 | `lark-axi im search --query <text>` | Search messages. |
-| `lark-axi im send --chat-id <id> --text <text> --dry-run\|--execute` | Preview or send a message. |
+| `lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run\|--execute` | Preview or send a message. |
 | `lark-axi docs fetch --token <token>` | Fetch a document preview. |
 | `lark-axi docs create --title <title> --content <markdown> --dry-run\|--execute` | Preview or create a document. |
 | `lark-axi drive search` | Delegate Drive search through generic read handling. |
@@ -136,6 +136,13 @@ lark-cli auth login --recommend
 | `lark-axi sheets info` | Inspect spreadsheet metadata. |
 | `lark-axi task list` | List tasks assigned to the current identity. |
 | `lark-axi raw <lark-cli args...>` | Delegate uncovered operations to `lark-cli`. |
+
+IM IDs:
+
+- `chat_id` identifies a group or P2P conversation and starts with `oc_`.
+- `message_id` starts with `om_`; sender user IDs start with `ou_`; app IDs start with `cli_`.
+- Use `lark-axi im search --query "hello"` to see matching messages with their `chat_id`.
+- Use `lark-axi raw im +chat-search --query "project"` or `lark-axi raw im +chat-list --types group,p2p` to look up chats directly.
 
 Global flags:
 

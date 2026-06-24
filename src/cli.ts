@@ -141,15 +141,16 @@ const HELP_COMMANDS: HelpCommand[] = [
     command: "im search",
     description: "Search messages",
     usage: "lark-axi im search --query <text> [--limit N] [--fields a,b,c]",
-    flags: "--query <text> required; --limit N; --fields message_id,sender,text,create_time",
-    examples: "lark-axi im search --query \"project update\"\nlark-axi im search --query \"release\" --fields message_id,text"
+    flags: "--query <text> required; --limit N; --fields chat_id,message_id,sender,text,create_time",
+    examples: "lark-axi im search --query \"project update\"\nlark-axi im search --query \"release\" --fields chat_id,message_id,text"
   },
   {
     command: "im send",
     description: "Preview or send a message",
-    usage: "lark-axi im send --chat-id <id> --text <text> --dry-run|--execute",
-    flags: "--chat-id <id> required; --text <text> required; exactly one of --dry-run or --execute",
-    examples: "lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run\nlark-axi im send --chat-id oc_xxx --text \"hello\" --execute"
+    usage: "lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run|--execute",
+    flags: "--chat-id <oc_xxx> required; chat IDs start with oc_; --text <text> required; exactly one of --dry-run or --execute",
+    examples:
+      "lark-axi im search --query \"hello\" --fields chat_id,message_id,text\nlark-axi raw im +chat-search --query \"project\"\nlark-axi raw im +chat-list --types group,p2p\nlark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run\nlark-axi im send --chat-id oc_xxx --text \"hello\" --execute"
   },
   {
     command: "docs fetch",

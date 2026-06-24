@@ -65,8 +65,8 @@ Current local context:
 | T10 | Task list | `lark-axi task list` | Assigned tasks or explicit empty state | read-only |
 | T11 | Markdown fetch | `lark-axi markdown fetch <test args>` | Markdown content or raw wrapper output | read-only |
 | T12 | Raw fallback | `lark-axi raw api GET /open-apis/calendar/v4/calendars` | Raw rows with curated-command hint | read-only |
-| T13 | Safety block | `lark-axi im send --chat-id <id> --text <text>` | Usage error requiring `--dry-run` or `--execute` | no write |
-| T14 | IM dry-run | `lark-axi im send --chat-id <id> --text <text> --dry-run` | Planned request, no message sent | dry-run |
+| T13 | Safety block | `lark-axi im send --chat-id <oc_xxx> --text <text>` | Usage error requiring `--dry-run` or `--execute` | no write |
+| T14 | IM dry-run | `lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run` | Planned request, no message sent | dry-run |
 | T15 | Docs dry-run | `lark-axi docs create --title <title> --content <content> --dry-run` | Planned request, no doc created | dry-run |
 | T16 | IM execute | `lark-axi im send --chat-id <test_chat_id> --text <approved_text> --execute` | One message appears in the test chat | write |
 | T17 | Docs execute | `lark-axi docs create --title <title> --content <content> --execute` | One disposable doc is created and fetchable | write |

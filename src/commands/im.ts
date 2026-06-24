@@ -7,7 +7,7 @@ import { asRows, countRecord, pickFields, withForwardedGlobals } from "./common.
 export async function imSearch(adapter: LarkCliAdapter, query: string | undefined, options: GlobalOptions): Promise<RenderDocument> {
   if (!query) throw new UsageError("im search requires --query", "Example: lark-axi im search --query \"project update\"");
   const value = await adapter.json(withForwardedGlobals(["im", "+messages-search", "--query", query, "--format", "json"], options));
-  const fields = options.fields ?? ["message_id", "sender", "text", "create_time"];
+  const fields = options.fields ?? ["chat_id", "message_id", "sender", "text", "create_time"];
   const allRows = pickFields(asRows(value).map(normalizeMessageRow), fields);
   const limit = options.limit ?? 20;
   const rows = allRows.slice(0, limit);
