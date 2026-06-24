@@ -1,0 +1,40 @@
+{
+  "name": "lark-axi",
+  "version": "0.1.0",
+  "description": "Agent-facing AXI wrapper around the official Lark/Feishu lark-cli.",
+  "type": "module",
+  "bin": {
+    "lark-axi": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run build && npm test && npm run skill:check",
+    "skill:generate": "tsx src/skill/generate.ts",
+    "skill:check": "tsx src/skill/generate.ts --check"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "axi",
+    "feishu",
+    "lark",
+    "cli",
+    "agent"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.9"
+  }
+}
