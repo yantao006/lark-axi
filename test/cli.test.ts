@@ -125,7 +125,7 @@ Flags:
     const body = JSON.parse(result.stdout);
 
     expect(result.code).toBe(0);
-    expect(body.sections[0].rows).toEqual([
+    expect(body.sections[1].rows).toEqual([
       {
         message_id: "om_x",
         sender: { sender_type: "app", id: "cli_x" },
