@@ -61,9 +61,16 @@ function parseUpstreamError(stdout: string): { type?: string; message?: string; 
 
 function extractJsonObject(text: string): string | undefined {
   const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1 || end < start) return undefined;
-  return text.slice(start, end + 1);
+  if (start === -1) return undefined;
+  for (let i = text.length - 1; i > start; i--) {
+    if (text[i] !== "}") continue;
+    const candidate = text.slice(start, i + 1);
+    try {
+      const parsed = JSON.parse(candidate);
+      if (typeof parsed === "object" && parsed !== null && "error" in parsed) return candidate;
+    } catch { /* try shorter slice */ }
+  }
+  return undefined;
 }
 
 function stripWarnings(stderr: string): string {

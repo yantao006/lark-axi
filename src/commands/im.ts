@@ -25,8 +25,9 @@ export async function imSend(adapter: LarkCliAdapter, args: { chatId?: string; t
 }
 
 function normalizeMessageRow(row: Record<string, unknown>): Record<string, unknown> {
+  const { content, ...rest } = row;
   return {
-    ...row,
-    text: row.text ?? row.content ?? ""
+    ...rest,
+    text: row.text ?? content ?? ""
   };
 }

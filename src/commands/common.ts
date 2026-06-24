@@ -24,7 +24,6 @@ export function asRows(value: unknown, fallbackKey = "value"): Record<string, un
       for (const key of ["items", "records", "messages", "events", "results"]) {
         if (Array.isArray(data[key])) return (data[key] as unknown[]).map((item) => normalizeRow(item, fallbackKey));
       }
-      return [data];
     }
     return [record];
   }
