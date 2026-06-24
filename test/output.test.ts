@@ -20,6 +20,14 @@ describe("output rendering", () => {
     expect(output).toContain('api: [{"method":"POST","url":"/x"}]');
   });
 
+  it("indents multiline text sections", () => {
+    const output = renderDocument({
+      sections: [{ name: "examples", text: "lark-axi task list\nlark-axi auth status" }]
+    }, { format: "compact" });
+
+    expect(output).toContain("examples:\n  lark-axi task list\n  lark-axi auth status");
+  });
+
   it("truncates long content with total size", () => {
     const result = truncateText("abcdef", false, 3);
     expect(result).toEqual({ text: "abc...", truncated: true, totalChars: 6 });

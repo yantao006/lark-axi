@@ -39,6 +39,14 @@ export function objectAt(value: unknown, path: string[]): Record<string, unknown
   return typeof current === "object" && current !== null && !Array.isArray(current) ? (current as Record<string, unknown>) : undefined;
 }
 
+export function countRecord(rows: Record<string, unknown>[], shown: number, limit: number): Record<string, unknown> {
+  return {
+    shown,
+    total_observed: rows.length,
+    limit
+  };
+}
+
 function normalizeRow(value: unknown, fallbackKey: string): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : { [fallbackKey]: value };
 }

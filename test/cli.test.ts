@@ -9,6 +9,13 @@ describe("lark-axi cli", () => {
     expect(result.stdout).toContain("lark-axi help");
   });
 
+  it("renders command help without lark-cli", async () => {
+    const result = await runCli(["im", "search", "--help"]);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("lark-axi help im search");
+    expect(result.stdout).toContain("im search --query <text>");
+  });
+
   it("renders home dashboard from lark-cli status", async () => {
     const runner = new MockRunner("/opt/homebrew/bin/lark-cli");
     runner.respond(["--version"], "lark-cli version 1.0.32");
@@ -42,6 +49,14 @@ Flags:
     const result = await runCli(["raw", "api", "GET", "/open-apis/calendar/v4/calendars", "--params", "{}"], { runner });
     expect(result.code).toBe(0);
     expect(runner.calls[0]?.args).toEqual(["api", "GET", "/open-apis/calendar/v4/calendars", "--params", "{}"]);
+  });
+
+  it("returns usage exit code when raw has no arguments", async () => {
+    const runner = new MockRunner();
+    const result = await runCli(["raw"], { runner });
+    expect(result.code).toBe(2);
+    expect(result.stdout).toContain("raw requires lark-cli arguments");
+    expect(runner.calls).toEqual([]);
   });
 
   it("does not consume raw command flags as wrapper flags", async () => {

@@ -1,7 +1,7 @@
 import type { GlobalOptions, RenderDocument } from "../types.js";
 import type { LarkCliAdapter } from "../lark/adapter.js";
 import { UsageError } from "../lark/errors.js";
-import { asRows, pickFields, withForwardedGlobals } from "./common.js";
+import { asRows, countRecord, pickFields, withForwardedGlobals } from "./common.js";
 
 interface GenericReadCommand {
   args: string[];
@@ -21,9 +21,18 @@ export async function genericRead(adapter: LarkCliAdapter, key: string, extra: s
   if (!command) throw new UsageError(`Unsupported command '${key}'`, "Run `lark-axi --help` for supported commands.");
   const formatArgs = command.supportsFormat ? ["--format", "json"] : [];
   const value = await adapter.json(withForwardedGlobals([...command.args, ...extra, ...formatArgs], options));
-  const rows = pickFields(asRows(value), options.fields).slice(0, options.limit ?? 20);
+  const allRows = pickFields(asRows(value), options.fields);
+  const limit = options.limit ?? 20;
+  const rows = allRows.slice(0, limit);
+  const name = key.replace(" ", "_");
   return {
-    sections: [{ name: key.replace(" ", "_"), rows, fields: options.fields, empty: `0 results for ${key}` }],
-    help: ["Use `lark-axi raw ...` for unsupported lark-cli operations."]
+    sections: [
+      { name: `${name}_count`, record: countRecord(allRows, rows.length, limit) },
+      { name, rows, fields: options.fields, empty: `0 results for ${key}` }
+    ],
+    help:
+      allRows.length > rows.length
+        ? [`Run \`lark-axi ${key} --limit <n>\` to show more results.`]
+        : ["Use `lark-axi raw ...` for unsupported lark-cli operations."]
   };
 }
