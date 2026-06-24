@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { AxiError, CliResult, GlobalOptions, RenderDocument } from "./types.js";
 import { renderDocument } from "./output/render.js";
@@ -6,7 +7,7 @@ import { LarkCliAdapter, type LarkCliAdapterOptions } from "./lark/adapter.js";
 import { UsageError, dependencyError, usageError } from "./lark/errors.js";
 import { compareVersions } from "./lark/version.js";
 import { discoverCapabilities } from "./lark/discovery.js";
-import { authStatus } from "./commands/auth.js";
+import { authStatus, normalizeAuthStatus } from "./commands/auth.js";
 import { calendarAgenda } from "./commands/calendar.js";
 import { docsCreate, docsFetch } from "./commands/docs.js";
 import { genericRead } from "./commands/generic.js";
@@ -71,6 +72,7 @@ async function dispatch(adapter: LarkCliAdapter, positionals: string[], options:
 async function home(adapter: LarkCliAdapter): Promise<RenderDocument> {
   const version = await adapter.version();
   const auth = await safeAuth(adapter);
+  const authSummary = normalizeAuthStatus(auth);
   const capabilities = await safeCapabilities(adapter);
   const stale = version.version && compareVersions(version.version, KNOWN_LATEST_LARK_CLI) < 0;
 
@@ -91,10 +93,10 @@ async function home(adapter: LarkCliAdapter): Promise<RenderDocument> {
       {
         name: "auth",
         record: {
-          brand: auth.brand ?? "",
-          identity: auth.identity ?? "",
-          user: auth.userName ?? "",
-          note: auth.note ?? ""
+          brand: authSummary.brand,
+          identity: authSummary.identity,
+          user: authSummary.userName,
+          note: authSummary.note
         }
       },
       {
@@ -345,7 +347,18 @@ function toAxiError(error: unknown): AxiError {
   return dependencyError("Unknown error");
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+export function isEntrypoint(argvEntry = process.argv[1], moduleUrl = import.meta.url): boolean {
+  if (!argvEntry) return false;
+
+  const modulePath = fileURLToPath(moduleUrl);
+  try {
+    return realpathSync(argvEntry) === realpathSync(modulePath);
+  } catch {
+    return argvEntry === modulePath;
+  }
+}
+
+if (isEntrypoint()) {
   const result = await runCli(process.argv.slice(2));
   if (result.stderr) process.stderr.write(result.stderr);
   process.stdout.write(result.stdout);

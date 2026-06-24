@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { runCli } from "../src/cli.js";
+import { mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { isEntrypoint, runCli } from "../src/cli.js";
 import { MockRunner } from "./helpers.js";
 
 describe("lark-axi cli", () => {
@@ -16,10 +20,23 @@ describe("lark-axi cli", () => {
     expect(result.stdout).toContain("im search --query <text>");
   });
 
+  it("detects symlinked npm bin entrypoints", () => {
+    const cliPath = fileURLToPath(new URL("../src/cli.ts", import.meta.url));
+    const tempDir = mkdtempSync(join(tmpdir(), "lark-axi-"));
+    const linkedPath = join(tempDir, "lark-axi");
+
+    try {
+      symlinkSync(cliPath, linkedPath);
+      expect(isEntrypoint(linkedPath, pathToFileURL(cliPath).href)).toBe(true);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it("renders home dashboard from lark-cli status", async () => {
     const runner = new MockRunner("/opt/homebrew/bin/lark-cli");
     runner.respond(["--version"], "lark-cli version 1.0.32");
-    runner.respond(["auth", "status"], { brand: "feishu", identity: "bot", userName: "Yan", note: "Token missing" });
+    runner.respond(["auth", "status"], { brand: "feishu", identity: "bot", userName: "Example User", note: "Token missing" });
     runner.respond(["--help"], `Available Commands:
   auth        OAuth credentials and authorization management
   calendar    Calendar, event, and attendee management
@@ -32,6 +49,27 @@ Flags:
     expect(result.stdout).toContain("lark_cli: 1.0.32");
     expect(result.stdout).toContain("Token missing");
     expect(result.stdout).toContain("domains[2]{domain,status,description}:");
+  });
+
+  it("reads auth user details from lark-cli identity summaries", async () => {
+    const runner = new MockRunner();
+    runner.respond(["auth", "status"], {
+      brand: "feishu",
+      defaultAs: "auto",
+      identity: "user",
+      identities: {
+        user: {
+          status: "ready",
+          userName: "Example User",
+          tokenStatus: "valid"
+        }
+      }
+    });
+
+    const result = await runCli(["auth", "status"], { runner });
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("identity: user");
+    expect(result.stdout).toContain("user: Example User");
   });
 
   it("does not invoke lark-cli when mutation lacks approval", async () => {
