@@ -13,4 +13,4 @@ Default posture:
 - Extract structured upstream error fields (`type`, `message`, `hint`) from `lark-cli` JSON error responses when available.
 - Prefer previews and compact summaries before full body retrieval.
 
-Use bot or user identity intentionally with `--as bot` or `--as user` when the upstream command supports it.
+Use bot or user identity intentionally with `--as bot`, `--as user`, or `--as auto` when the upstream command supports it.
