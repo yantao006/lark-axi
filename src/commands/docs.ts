@@ -3,20 +3,21 @@ import type { LarkCliAdapter } from "../lark/adapter.js";
 import { UsageError } from "../lark/errors.js";
 import { requireMutationApproval } from "../safety/policy.js";
 import { truncateText } from "../output/truncate.js";
-import { asRows, withForwardedGlobals } from "./common.js";
+import { asRows, objectAt, withForwardedGlobals } from "./common.js";
 
 export async function docsFetch(adapter: LarkCliAdapter, token: string | undefined, options: GlobalOptions): Promise<RenderDocument> {
   if (!token) throw new UsageError("docs fetch requires --token", "Example: lark-axi docs fetch --token <doc-token>");
-  const value = await adapter.json(withForwardedGlobals(["docs", "+fetch", "--doc", token, "--format", "json"], options));
-  const row = asRows(value)[0] ?? {};
-  const body = truncateText(row.content ?? row.text ?? row.raw ?? "", options.full);
+  const value = await adapter.json(withForwardedGlobals(["docs", "+fetch", "--api-version", "v2", "--doc", token, "--format", "json"], options));
+  const document = objectAt(value, ["data", "document"]) ?? asRows(value)[0] ?? {};
+  const content = stringValue(document.content ?? document.text ?? document.raw);
+  const body = truncateText(content, options.full);
   return {
     sections: [
       {
         name: "doc",
         record: {
           token,
-          title: row.title ?? "",
+          title: stringValue(document.title) || titleFromXml(content),
           chars: body.totalChars,
           content: body.text
         }
@@ -34,4 +35,12 @@ export async function docsCreate(adapter: LarkCliAdapter, args: { title?: string
   return {
     sections: [{ name: args.dryRun ? "dry_run" : "doc", record: asRows(value)[0] ?? { ok: true } }]
   };
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function titleFromXml(content: string): string {
+  return content.match(/<title[^>]*>(.*?)<\/title>/s)?.[1] ?? "";
 }
