@@ -19,7 +19,7 @@ export async function runRaw(adapter: LarkCliAdapter, argv: string[], options: G
     ],
     help:
       allRows.length > rows.length
-        ? ["Run `lark-axi raw <lark-cli args...> --limit <n>` to show more rows."]
+        ? ["Run `lark-axi --limit <n> raw <lark-cli args...>` to show more rows."]
         : ["Prefer curated lark-axi commands when available for smaller output."]
   };
 }
