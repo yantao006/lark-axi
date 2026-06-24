@@ -65,4 +65,85 @@ Flags:
       ["sheets", "+info"]
     ]);
   });
+
+  it("extracts docs fetch content from the lark-cli v2 document envelope", async () => {
+    const runner = new MockRunner();
+    runner.respond(["docs", "+fetch", "--api-version", "v2", "--doc", "doc_x", "--format", "json"], {
+      ok: true,
+      identity: "user",
+      data: {
+        document: {
+          document_id: "doc_x",
+          revision_id: 3,
+          content: "<title>Smoke</title><p>Hello from doc</p>"
+        }
+      }
+    });
+
+    const result = await runCli(["docs", "fetch", "--token", "doc_x", "--format", "json"], { runner });
+    const body = JSON.parse(result.stdout);
+
+    expect(result.code).toBe(0);
+    expect(body.sections[0].record.content).toContain("Hello from doc");
+    expect(body.sections[0].record.chars).toBe(41);
+    expect(runner.calls[0]?.args).toEqual(["docs", "+fetch", "--api-version", "v2", "--doc", "doc_x", "--format", "json"]);
+  });
+
+  it("extracts message rows from im search envelopes", async () => {
+    const runner = new MockRunner();
+    runner.respond(["im", "+messages-search", "--query", "测试", "--format", "json"], {
+      ok: true,
+      identity: "user",
+      data: {
+        messages: [
+          {
+            message_id: "om_x",
+            sender: { sender_type: "app", id: "cli_x" },
+            content: "hello message",
+            create_time: "2026-06-24 10:33"
+          }
+        ]
+      }
+    });
+
+    const result = await runCli(["im", "search", "--query", "测试", "--format", "json"], { runner });
+    const body = JSON.parse(result.stdout);
+
+    expect(result.code).toBe(0);
+    expect(body.sections[0].rows).toEqual([
+      {
+        message_id: "om_x",
+        sender: { sender_type: "app", id: "cli_x" },
+        text: "hello message",
+        create_time: "2026-06-24 10:33"
+      }
+    ]);
+  });
+
+  it("normalizes lark-cli json errors without proxy warnings or update envelopes", async () => {
+    const runner = new MockRunner();
+    runner.responses.set("drive +search --query x --format json", {
+      code: 3,
+      stdout: "",
+      stderr: `[lark-cli] [WARN] proxy detected: HTTPS_PROXY=http://127.0.0.1:7890\n${JSON.stringify({
+        ok: false,
+        identity: "user",
+        error: {
+          type: "missing_scope",
+          message: "missing required scope(s): search:docs:read",
+          hint: "run auth login"
+        },
+        _notice: { update: { command: "lark-cli update" } }
+      })}`
+    });
+
+    const result = await runCli(["drive", "search", "--query", "x", "--format", "json"], { runner });
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toContain('"code": "missing_scope"');
+    expect(result.stdout).toContain("missing required scope");
+    expect(result.stdout).toContain("run auth login");
+    expect(result.stdout).not.toContain("proxy detected");
+    expect(result.stdout).not.toContain("_notice");
+  });
 });
