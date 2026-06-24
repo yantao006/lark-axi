@@ -20,6 +20,14 @@ describe("lark-axi cli", () => {
     expect(result.stdout).toContain("im search --query <text>");
   });
 
+  it("explains how to find chat ids in im send help", async () => {
+    const result = await runCli(["im", "send", "--help"]);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("--chat-id <oc_xxx>");
+    expect(result.stdout).toContain("lark-axi im search --query \"hello\" --fields chat_id,message_id,text");
+    expect(result.stdout).toContain("lark-axi raw im +chat-search --query \"project\"");
+  });
+
   it("detects symlinked npm bin entrypoints", () => {
     const cliPath = fileURLToPath(new URL("../src/cli.ts", import.meta.url));
     const tempDir = mkdtempSync(join(tmpdir(), "lark-axi-"));
@@ -119,6 +127,20 @@ Flags:
     ]);
   });
 
+  it("shows required raw calendar instance_view flags in agenda help", async () => {
+    const runner = new MockRunner();
+    runner.respond(["calendar", "+agenda", "--format", "json"], { items: [] });
+
+    const result = await runCli(["calendar", "agenda"], { runner });
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("calendar events instance_view");
+    expect(result.stdout).toContain("--calendar-id <calendar_id>");
+    expect(result.stdout).toContain("--start-time <unix_seconds>");
+    expect(result.stdout).toContain("--end-time <unix_seconds>");
+    expect(result.stdout).not.toContain("instance_view ...");
+  });
+
   it("extracts docs fetch content from the lark-cli v2 document envelope", async () => {
     const runner = new MockRunner();
     runner.respond(["docs", "+fetch", "--api-version", "v2", "--doc", "doc_x", "--format", "json"], {
@@ -150,6 +172,7 @@ Flags:
       data: {
         messages: [
           {
+            chat_id: "oc_x",
             message_id: "om_x",
             sender: { sender_type: "app", id: "cli_x" },
             content: "hello message",
@@ -165,6 +188,7 @@ Flags:
     expect(result.code).toBe(0);
     expect(body.sections[1].rows).toEqual([
       {
+        chat_id: "oc_x",
         message_id: "om_x",
         sender: { sender_type: "app", id: "cli_x" },
         text: "hello message",

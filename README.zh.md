@@ -114,7 +114,7 @@ lark-cli auth login --recommend
 | `lark-axi auth status` | 显示精简身份状态。 |
 | `lark-axi calendar agenda` | 列出即将到来的日程。 |
 | `lark-axi im search --query <text>` | 搜索消息。 |
-| `lark-axi im send --chat-id <id> --text <text> --dry-run\|--execute` | 预览或发送消息。 |
+| `lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run\|--execute` | 预览或发送消息。 |
 | `lark-axi docs fetch --token <token>` | 获取文档预览。 |
 | `lark-axi docs create --title <title> --content <markdown> --dry-run\|--execute` | 预览或创建文档。 |
 | `lark-axi drive search` | 通过通用读取逻辑委托云盘搜索。 |
@@ -122,6 +122,13 @@ lark-cli auth login --recommend
 | `lark-axi sheets info` | 查看电子表格元数据。 |
 | `lark-axi task list` | 列出分配给当前身份的任务。 |
 | `lark-axi raw <lark-cli args...>` | 将未覆盖操作委托给 `lark-cli`。 |
+
+IM ID 说明：
+
+- `chat_id` 表示群聊或单聊会话，前缀是 `oc_`。
+- `message_id` 前缀是 `om_`；发送者用户 ID 前缀通常是 `ou_`；应用 ID 前缀是 `cli_`。
+- 用 `lark-axi im search --query "hello"` 可以在匹配消息里看到 `chat_id`。
+- 用 `lark-axi raw im +chat-search --query "project"` 或 `lark-axi raw im +chat-list --types group,p2p` 可以直接查找会话。
 
 全局参数：
 

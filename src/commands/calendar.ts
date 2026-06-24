@@ -15,6 +15,8 @@ export async function calendarAgenda(adapter: LarkCliAdapter, options: GlobalOpt
     help:
       allRows.length > rows.length
         ? ["Run `lark-axi calendar agenda --limit <n>` to show more events."]
-        : ["Run `lark-axi raw calendar events instance_view ...` for lower-level event queries."]
+        : [
+            "Run `lark-axi raw calendar events instance_view --calendar-id <calendar_id> --start-time <unix_seconds> --end-time <unix_seconds>` for lower-level event queries."
+          ]
   };
 }

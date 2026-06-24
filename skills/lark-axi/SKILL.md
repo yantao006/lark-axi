@@ -26,7 +26,7 @@ lark-axi
 - Check auth and identity: `lark-axi auth status`
 - Inspect calendar context: `lark-axi calendar agenda`
 - Search messages: `lark-axi im search --query "<text>"`
-- Preview sending a message: `lark-axi im send --chat-id <id> --text "<text>" --dry-run`
+- Preview sending a message: `lark-axi im send --chat-id <oc_xxx> --text "<text>" --dry-run`
 - Fetch document preview: `lark-axi docs fetch --token <token>`
 - Preview document creation: `lark-axi docs create --title "<title>" --content "<markdown>" --dry-run`
 - Use uncovered lark-cli operations: `lark-axi raw <lark-cli args...>`
