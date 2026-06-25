@@ -48,6 +48,13 @@ async function dispatch(adapter: LarkCliAdapter, positionals: string[], options:
   if (domain === "calendar" && subcommand === "agenda") return calendarAgenda(adapter, options);
   if (domain === "im" && subcommand === "search") return imSearch(adapter, stringValue(values.query), options);
   if (domain === "im" && subcommand === "send") {
+    const contentFlags = ["text", "markdown", "content", "image", "file", "video", "audio"].filter((f) => values[f] !== undefined);
+    if (contentFlags.length > 1) {
+      throw new UsageError(
+        `im send received multiple content flags: ${contentFlags.map((f) => `--${f}`).join(", ")}`,
+        "Specify exactly one content flag per message."
+      );
+    }
     if (values.markdown || values.content || values["user-id"] || values.image || values.file || values.video || values.audio) {
       const registered = await dispatchRegistered(adapter, definition, rest, values, options);
       if (registered) return registered;

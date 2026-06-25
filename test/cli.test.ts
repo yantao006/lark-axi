@@ -165,6 +165,17 @@ Flags:
     expect(runner.calls[0]?.args).toEqual(["im", "+messages-send", "--chat-id", "oc_x", "--markdown", "# hello", "--dry-run", "--format", "json"]);
   });
 
+  it("rejects ambiguous multiple content flags on im send", async () => {
+    const runner = new MockRunner();
+    const result = await runCli(["im", "send", "--chat-id", "oc_x", "--text", "hello", "--markdown", "# hello", "--dry-run"], { runner });
+
+    expect(result.code).toBe(2);
+    expect(result.stdout).toContain("multiple content flags");
+    expect(result.stdout).toContain("--text");
+    expect(result.stdout).toContain("--markdown");
+    expect(runner.calls).toEqual([]);
+  });
+
   it("rejects generic mutations that specify both dry-run and execute", async () => {
     const runner = new MockRunner();
     const result = await runCli(["im", "send", "--chat-id", "oc_x", "--markdown", "# hello", "--dry-run", "--execute"], { runner });
