@@ -142,7 +142,7 @@ IM IDs:
 - `chat_id` identifies a group or P2P conversation and starts with `oc_`.
 - `message_id` starts with `om_`; sender user IDs start with `ou_`; app IDs start with `cli_`.
 - Use `lark-axi im search --query "hello"` to see matching messages with their `chat_id`.
-- Use `lark-axi raw im +chat-search --query "project"` or `lark-axi raw im +chat-list --types group,p2p` to look up chats directly.
+- Use `lark-axi im chat-search --query "project"` or `lark-axi im chats --types group,p2p` to look up chats directly.
 
 Global flags:
 

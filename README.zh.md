@@ -128,7 +128,7 @@ IM ID 说明：
 - `chat_id` 表示群聊或单聊会话，前缀是 `oc_`。
 - `message_id` 前缀是 `om_`；发送者用户 ID 前缀通常是 `ou_`；应用 ID 前缀是 `cli_`。
 - 用 `lark-axi im search --query "hello"` 可以在匹配消息里看到 `chat_id`。
-- 用 `lark-axi raw im +chat-search --query "project"` 或 `lark-axi raw im +chat-list --types group,p2p` 可以直接查找会话。
+- 用 `lark-axi im chat-search --query "project"` 或 `lark-axi im chats --types group,p2p` 可以直接查找会话。
 
 全局参数：
 

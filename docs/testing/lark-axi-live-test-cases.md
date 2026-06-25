@@ -35,7 +35,7 @@ Do not store access tokens, refresh tokens, app secrets, session cookies, or ten
 
 ## Required Cadence
 
-After a significant change to command routing, adapters, output rendering, safety policy, docs wrappers, IM wrappers, generic wrappers, or skill generation:
+After a significant change to command routing, adapters, output rendering, safety policy, curated command wrappers, generic wrappers, registry coverage, raw fallback behavior, or skill generation:
 
 1. Run `npm run check`.
 2. Run every non-destructive live case that has resources available.

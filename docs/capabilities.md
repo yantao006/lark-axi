@@ -46,6 +46,8 @@ Registry-backed commands carry a risk class:
 | external-send | `im send` | Requires `--dry-run` or `--execute`. |
 | file-system | Future upload/download routes after evidence exists. | Requires `--dry-run` or `--execute`. |
 
+Write-like risk classes require exactly one of `--dry-run` or `--execute`; passing both is a usage error.
+
 `raw` remains an escape hatch. When the raw arguments match a known curated upstream shortcut, output help suggests the corresponding `lark-axi` command. When that command is write-like, raw output also shows the risk and points out that the curated wrapper enforces `--dry-run` or `--execute`.
 
 ## Error Normalization
