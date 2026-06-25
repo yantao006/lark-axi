@@ -108,27 +108,27 @@ lark-cli auth login --recommend
 
 ## 命令
 
-| 命令 | 说明 |
+运行 `lark-axi --help` 查看当前命令注册表；运行 `lark-axi help <command>` 查看单个命令的用法、参数、示例、覆盖状态和风险类别。
+
+| 范围 | 命令 |
 | --- | --- |
-| `lark-axi` | 显示运行时、认证摘要、已发现业务域和下一步提示。 |
-| `lark-axi auth status` | 显示精简身份状态。 |
-| `lark-axi calendar agenda` | 列出即将到来的日程。 |
-| `lark-axi im search --query <text>` | 搜索消息。 |
-| `lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run\|--execute` | 预览或发送消息。 |
-| `lark-axi docs fetch --token <token>` | 获取文档预览。 |
-| `lark-axi docs create --title <title> --content <markdown> --dry-run\|--execute` | 预览或创建文档。 |
-| `lark-axi drive search` | 通过通用读取逻辑委托云盘搜索。 |
-| `lark-axi base records` | 通过通用读取逻辑委托多维表格记录列表。 |
-| `lark-axi sheets info` | 查看电子表格元数据。 |
-| `lark-axi task list` | 列出分配给当前身份的任务。 |
-| `lark-axi raw <lark-cli args...>` | 将未覆盖操作委托给 `lark-cli`。 |
+| 运行时与认证 | `lark-axi`, `auth status`, `auth scopes`, `auth users`, `doctor` |
+| 日历 | `calendar agenda` |
+| 即时通讯 | `im search`, `im chats`, `im chat-search`, `im send` |
+| 文档与 Markdown | `docs fetch`, `docs search`, `docs create`, `markdown fetch` |
+| 云盘 | `drive search`, `drive inspect` |
+| 多维表格与电子表格 | `base records`, `sheets info` |
+| 任务与联系人 | `task list`, `contact search` |
+| Fallback | `raw <lark-cli args...>` |
+
+表外命令默认 raw-first，只有具备证据后才进入 curated/generic：真实上游参数/输出 fixture、wrapper 路由或归一化测试、写类命令安全测试、可执行 help 示例，以及文档和 skill 同步。
 
 IM ID 说明：
 
 - `chat_id` 表示群聊或单聊会话，前缀是 `oc_`。
 - `message_id` 前缀是 `om_`；发送者用户 ID 前缀通常是 `ou_`；应用 ID 前缀是 `cli_`。
 - 用 `lark-axi im search --query "hello"` 可以在匹配消息里看到 `chat_id`。
-- 用 `lark-axi raw im +chat-search --query "project"` 或 `lark-axi raw im +chat-list --types group,p2p` 可以直接查找会话。
+- 用 `lark-axi im chat-search --query "project"` 或 `lark-axi im chats --types group,p2p` 可以直接查找会话。
 
 全局参数：
 
@@ -190,7 +190,7 @@ lark-cli auth status
 `lark-axi` 采用三层实用模型：
 
 1. **受管封装**：面向常见 Agent 工作流的稳定、紧凑命令。
-2. **通用读取**：对云盘、多维表格、电子表格、任务等常用读取路径做轻量委托。
+2. **注册表驱动的通用路由**：对暂不需要专门归一化的常用路径做轻量委托。
 3. **Raw fallback**：对尚未建模的能力，委托执行任意 `lark-cli` 命令。
 
 当前覆盖表见 [docs/capabilities.md](docs/capabilities.md)。
@@ -203,12 +203,14 @@ lark-cli auth status
 
 - 不自动执行登录。
 - 在鼓励操作前展示当前身份状态。
-- 受管写操作必须使用 `--dry-run` 或 `--execute`。
+- 受管写操作必须且只能使用 `--dry-run` 或 `--execute` 其中一个。
 - 调用 `lark-cli` 前先校验必要写入参数。
 - 除非启用 `--debug`，否则依赖 stderr 不混入 stdout。
 - 优先使用紧凑预览，再按需获取完整内容。
 
 更多说明见 [docs/security.md](docs/security.md)。
+
+写入类命令会被标记为 `write`、`destructive`、`permission`、`external-send` 或 `file-system` 风险类别。
 
 ## 开发
 

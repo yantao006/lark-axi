@@ -11,6 +11,7 @@ describe("lark-axi cli", () => {
     const result = await runCli(["--help"]);
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("lark-axi help");
+    expect(result.stdout).not.toContain("drive delete");
   });
 
   it("renders command help without lark-cli", async () => {
@@ -24,8 +25,8 @@ describe("lark-axi cli", () => {
     const result = await runCli(["im", "send", "--help"]);
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("--chat-id <oc_xxx>");
-    expect(result.stdout).toContain("lark-axi im search --query \"hello\" --fields chat_id,message_id,text");
-    expect(result.stdout).toContain("lark-axi raw im +chat-search --query \"project\"");
+    expect(result.stdout).toContain("lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run");
+    expect(result.stdout).toContain("im chat-search --query \"project\"");
   });
 
   it("detects symlinked npm bin entrypoints", () => {
@@ -117,14 +118,91 @@ Flags:
   it("maps generic curated reads to real lark-cli shortcuts", async () => {
     const runner = new MockRunner();
     runner.respond(["task", "+get-my-tasks", "--format", "json"], { items: [] });
-    runner.respond(["sheets", "+info"], { spreadsheet_token: "sht_x" });
+    runner.respond(["sheets", "+workbook-info", "--format", "json"], { spreadsheet_token: "sht_x" });
 
     await expect(runCli(["task", "list"], { runner })).resolves.toMatchObject({ code: 0 });
     await expect(runCli(["sheets", "info"], { runner })).resolves.toMatchObject({ code: 0 });
     expect(runner.calls.map((call) => call.args)).toEqual([
       ["task", "+get-my-tasks", "--format", "json"],
-      ["sheets", "+info"]
+      ["sheets", "+workbook-info", "--format", "json"]
     ]);
+  });
+
+  it("routes registry-backed read commands with compact defaults", async () => {
+    const runner = new MockRunner();
+    runner.respond(["contact", "+search-user", "--query", "Alice", "--format", "json"], {
+      data: {
+        items: [
+          {
+            open_id: "ou_x",
+            name: "Alice",
+            email: "alice@example.com",
+            department: "Product",
+            extra: "large"
+          }
+        ]
+      }
+    });
+
+    const result = await runCli(["contact", "search", "--query", "Alice"], { runner });
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("contact_search[1]{open_id,name,email,department}:");
+    expect(result.stdout).toContain("ou_x,Alice,alice@example.com,Product");
+    expect(result.stdout).not.toContain("large");
+  });
+
+  it("routes richer IM sends through the registry-backed mutation path", async () => {
+    const runner = new MockRunner();
+    runner.respond(["im", "+messages-send", "--chat-id", "oc_x", "--markdown", "# hello", "--dry-run", "--format", "json"], {
+      request: { msg_type: "post" }
+    });
+
+    const result = await runCli(["im", "send", "--chat-id", "oc_x", "--markdown", "# hello", "--dry-run"], { runner });
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("risk: external-send");
+    expect(runner.calls[0]?.args).toEqual(["im", "+messages-send", "--chat-id", "oc_x", "--markdown", "# hello", "--dry-run", "--format", "json"]);
+  });
+
+  it("rejects ambiguous multiple content flags on im send", async () => {
+    const runner = new MockRunner();
+    const result = await runCli(["im", "send", "--chat-id", "oc_x", "--text", "hello", "--markdown", "# hello", "--dry-run"], { runner });
+
+    expect(result.code).toBe(2);
+    expect(result.stdout).toContain("multiple content flags");
+    expect(result.stdout).toContain("--text");
+    expect(result.stdout).toContain("--markdown");
+    expect(runner.calls).toEqual([]);
+  });
+
+  it("rejects generic mutations that specify both dry-run and execute", async () => {
+    const runner = new MockRunner();
+    const result = await runCli(["im", "send", "--chat-id", "oc_x", "--markdown", "# hello", "--dry-run", "--execute"], { runner });
+
+    expect(result.code).toBe(2);
+    expect(result.stdout).toContain("received both --dry-run and --execute");
+    expect(runner.calls).toEqual([]);
+  });
+
+  it("rejects registry-backed commands with missing required flags before lark-cli", async () => {
+    const runner = new MockRunner();
+    const result = await runCli(["im", "send", "--markdown", "# hello", "--dry-run"], { runner });
+
+    expect(result.code).toBe(2);
+    expect(result.stdout).toContain("im send requires --chat-id or --user-id");
+    expect(runner.calls).toEqual([]);
+  });
+
+  it("adds curated command and risk hints to raw fallback", async () => {
+    const runner = new MockRunner();
+    runner.respond(["im", "+messages-send", "--chat-id", "oc_x", "--text", "hello"], { ok: true });
+
+    const result = await runCli(["raw", "im", "+messages-send", "--chat-id", "oc_x", "--text", "hello"], { runner });
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("Prefer `lark-axi im send`");
+    expect(result.stdout).toContain("Risk: external-send");
   });
 
   it("shows required raw calendar instance_view flags in agenda help", async () => {

@@ -1,6 +1,6 @@
 ---
 name: lark-axi
-description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, docs, drive, base, sheets, tasks, auth status, and raw lark-cli fallback.
+description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, contacts, docs, drive, base, sheets, markdown, tasks, auth status, and raw lark-cli fallback.
 ---
 
 # Lark AXI
@@ -23,20 +23,34 @@ lark-axi
 
 ## When To Use
 
-- Check auth and identity: `lark-axi auth status`
-- Inspect calendar context: `lark-axi calendar agenda`
-- Search messages: `lark-axi im search --query "<text>"`
-- Preview sending a message: `lark-axi im send --chat-id <oc_xxx> --text "<text>" --dry-run`
-- Fetch document preview: `lark-axi docs fetch --token <token>`
-- Preview document creation: `lark-axi docs create --title "<title>" --content "<markdown>" --dry-run`
-- Use uncovered lark-cli operations: `lark-axi raw <lark-cli args...>`
-- Inspect command syntax: `lark-axi help <command>` or `lark-axi <command> --help`
+- Show lark-cli auth state: `lark-axi auth status`
+- List scopes enabled for the current app: `lark-axi auth scopes`
+- List logged-in users: `lark-axi auth users`
+- Run local lark-cli health checks: `lark-axi doctor`
+- List upcoming calendar events: `lark-axi calendar agenda`
+- Search messages: `lark-axi im search`
+- List visible chats: `lark-axi im chats`
+- Search visible group chats: `lark-axi im chat-search`
+- Preview or send a text, markdown, media, or raw content message: `lark-axi im send`
+- Fetch a document preview: `lark-axi docs fetch`
+- Search docs through lark-cli: `lark-axi docs search`
+- Preview or create a document: `lark-axi docs create`
+- Search Drive files: `lark-axi drive search`
+- Inspect Drive file metadata: `lark-axi drive inspect`
+- List Base records: `lark-axi base records`
+- Show spreadsheet workbook metadata: `lark-axi sheets info`
+- List current user's tasks: `lark-axi task list`
+- Search users by name or email: `lark-axi contact search`
+- Fetch a Lark document as Markdown: `lark-axi markdown fetch`
+- Pass through to lark-cli for commands not yet wrapped: `lark-axi raw`
 
 ## Rules
 
 - Prefer curated `lark-axi` commands before `raw`; curated commands return smaller agent-oriented output.
+- Use `lark-axi help <command>` or `lark-axi <command> --help` before using a command whose flags are unclear.
 - Read the count metadata on list commands: `shown`, `total_observed`, and `limit` tell you whether the compact response was capped.
 - Use `--format json` only when exact machine-readable fields are needed.
 - Use `--full` only after a truncated preview proves the full body is needed.
 - For writes, use `--dry-run` first unless the user has explicitly authorized the exact action.
 - Do not run `lark-cli auth login` automatically; surface the login command and wait for the user.
+- Use uncovered lark-cli operations through `lark-axi raw <lark-cli args...>`.

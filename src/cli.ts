@@ -10,9 +10,11 @@ import { discoverCapabilities } from "./lark/discovery.js";
 import { authStatus, normalizeAuthStatus } from "./commands/auth.js";
 import { calendarAgenda } from "./commands/calendar.js";
 import { docsCreate, docsFetch } from "./commands/docs.js";
-import { genericRead } from "./commands/generic.js";
+import { forwardCommandArgs } from "./commands/common.js";
+import { genericMutation, genericRead } from "./commands/generic.js";
 import { imSearch, imSend } from "./commands/im.js";
 import { runRaw } from "./commands/raw.js";
+import { displayCommands, findCommand, isMutationRisk, type CommandDefinition } from "./commands/registry.js";
 
 const KNOWN_LATEST_LARK_CLI = "1.0.57";
 
@@ -39,10 +41,24 @@ async function dispatch(adapter: LarkCliAdapter, positionals: string[], options:
   if (positionals.length === 0) return home(adapter);
 
   const [domain, subcommand, ...rest] = positionals;
+  const key = commandKey(domain, subcommand);
+  const definition = findCommand(key);
+
   if (domain === "auth" && (subcommand === "status" || !subcommand)) return authStatus(adapter, options);
   if (domain === "calendar" && subcommand === "agenda") return calendarAgenda(adapter, options);
   if (domain === "im" && subcommand === "search") return imSearch(adapter, stringValue(values.query), options);
   if (domain === "im" && subcommand === "send") {
+    const contentFlags = ["text", "markdown", "content", "image", "file", "video", "audio"].filter((f) => values[f] !== undefined);
+    if (contentFlags.length > 1) {
+      throw new UsageError(
+        `im send received multiple content flags: ${contentFlags.map((f) => `--${f}`).join(", ")}`,
+        "Specify exactly one content flag per message."
+      );
+    }
+    if (values.markdown || values.content || values["user-id"] || values.image || values.file || values.video || values.audio) {
+      const registered = await dispatchRegistered(adapter, definition, rest, values, options);
+      if (registered) return registered;
+    }
     return imSend(adapter, {
       chatId: stringValue(values["chat-id"]),
       text: stringValue(values.text),
@@ -61,12 +77,26 @@ async function dispatch(adapter: LarkCliAdapter, positionals: string[], options:
   }
   if (domain === "raw") return runRaw(adapter, [subcommand, ...rest].filter(Boolean), options);
 
-  const key = `${domain} ${subcommand ?? ""}`.trim();
-  if (["drive search", "base records", "sheets info", "task list", "markdown fetch"].includes(key)) {
-    return genericRead(adapter, key, forwardUnknown(rest, values), options);
-  }
+  const registered = await dispatchRegistered(adapter, definition, rest, values, options);
+  if (registered) return registered;
 
   throw new UsageError(`Unknown command '${key}'`, "Run `lark-axi --help` for supported commands, or use `lark-axi raw ...`.");
+}
+
+async function dispatchRegistered(
+  adapter: LarkCliAdapter,
+  definition: CommandDefinition | undefined,
+  rest: string[],
+  values: Record<string, FlagValue>,
+  options: GlobalOptions
+): Promise<RenderDocument | undefined> {
+  if (!definition || !definition.upstream) return undefined;
+  validateRequiredFlags(definition, values);
+  const forwarded = forwardCommandArgs(rest, values);
+  if (isMutationRisk(definition.risk)) {
+    return genericMutation(adapter, definition, forwarded, { execute: values.execute === true, dryRun: values["dry-run"] === true }, options);
+  }
+  return genericRead(adapter, definition, forwarded, options);
 }
 
 async function home(adapter: LarkCliAdapter): Promise<RenderDocument> {
@@ -114,106 +144,19 @@ async function home(adapter: LarkCliAdapter): Promise<RenderDocument> {
   };
 }
 
-interface HelpCommand {
-  command: string;
-  description: string;
-  usage: string;
-  flags: string;
-  examples: string;
-}
-
-const HELP_COMMANDS: HelpCommand[] = [
-  {
-    command: "auth status",
-    description: "Show lark-cli auth state",
-    usage: "lark-axi auth status [--format json]",
-    flags: "--format json; --profile <name>; --as user|bot",
-    examples: "lark-axi auth status"
-  },
-  {
-    command: "calendar agenda",
-    description: "List upcoming calendar events",
-    usage: "lark-axi calendar agenda [--limit N] [--fields a,b,c]",
-    flags: "--limit N; --fields summary,start_time,end_time,calendar_id; --format json",
-    examples: "lark-axi calendar agenda\nlark-axi calendar agenda --limit 50"
-  },
-  {
-    command: "im search",
-    description: "Search messages",
-    usage: "lark-axi im search --query <text> [--limit N] [--fields a,b,c]",
-    flags: "--query <text> required; --limit N; --fields chat_id,message_id,sender,text,create_time",
-    examples: "lark-axi im search --query \"project update\"\nlark-axi im search --query \"release\" --fields chat_id,message_id,text"
-  },
-  {
-    command: "im send",
-    description: "Preview or send a message",
-    usage: "lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run|--execute",
-    flags: "--chat-id <oc_xxx> required; chat IDs start with oc_; --text <text> required; exactly one of --dry-run or --execute",
-    examples:
-      "lark-axi im search --query \"hello\" --fields chat_id,message_id,text\nlark-axi raw im +chat-search --query \"project\"\nlark-axi raw im +chat-list --types group,p2p\nlark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run\nlark-axi im send --chat-id oc_xxx --text \"hello\" --execute"
-  },
-  {
-    command: "docs fetch",
-    description: "Fetch a doc preview",
-    usage: "lark-axi docs fetch --token <doc-token> [--full]",
-    flags: "--token <doc-token> required; --full disables content truncation",
-    examples: "lark-axi docs fetch --token <doc-token>\nlark-axi docs fetch --token <doc-token> --full"
-  },
-  {
-    command: "docs create",
-    description: "Preview or create a doc",
-    usage: "lark-axi docs create --title <title> --content <markdown> --dry-run|--execute",
-    flags: "--title <title> required; --content <markdown> required; exactly one of --dry-run or --execute",
-    examples: "lark-axi docs create --title \"Weekly\" --content \"# Progress\" --dry-run"
-  },
-  {
-    command: "drive search",
-    description: "Search Drive docs and files",
-    usage: "lark-axi drive search [lark-cli flags] [--limit N] [--fields a,b,c]",
-    flags: "--limit N; --fields a,b,c; forwards unknown flags to lark-cli",
-    examples: "lark-axi drive search --query \"roadmap\""
-  },
-  {
-    command: "base records",
-    description: "List Base records",
-    usage: "lark-axi base records [lark-cli flags] [--limit N] [--fields a,b,c]",
-    flags: "--limit N; --fields a,b,c; forwards unknown flags to lark-cli",
-    examples: "lark-axi base records --app-token <token> --table-id <id>"
-  },
-  {
-    command: "sheets info",
-    description: "Inspect spreadsheet metadata",
-    usage: "lark-axi sheets info [lark-cli flags]",
-    flags: "--fields a,b,c; forwards unknown flags to lark-cli",
-    examples: "lark-axi sheets info --spreadsheet-token <token>"
-  },
-  {
-    command: "task list",
-    description: "List tasks assigned to me",
-    usage: "lark-axi task list [--limit N] [--fields a,b,c]",
-    flags: "--limit N; --fields a,b,c; --format json",
-    examples: "lark-axi task list"
-  },
-  {
-    command: "raw",
-    description: "Delegate uncovered commands",
-    usage: "lark-axi [--limit N] [--fields a,b,c] raw <lark-cli args...>",
-    flags: "Place wrapper flags before `raw`; every argument after `raw` is passed through to lark-cli",
-    examples: "lark-axi raw api GET /open-apis/calendar/v4/calendars\nlark-axi --limit 5 raw api GET /open-apis/calendar/v4/calendars"
-  }
-];
-
 function helpDocument(positionals: string[] = []): RenderDocument {
   const command = matchHelpCommand(positionals);
   if (command) {
     return {
-      title: `lark-axi help ${command.command}`,
+      title: `lark-axi help ${command.key}`,
       sections: [
         {
           name: "command",
           record: {
-            name: command.command,
+            name: command.key,
             description: command.description,
+            status: command.status,
+            risk: command.risk,
             usage: command.usage,
             flags: command.flags
           }
@@ -232,18 +175,18 @@ function helpDocument(positionals: string[] = []): RenderDocument {
     sections: [
       {
         name: "commands",
-        rows: HELP_COMMANDS.map(({ command, description }) => ({ command, description })),
-        fields: ["command", "description"]
+        rows: displayCommands().map(({ key, description, status, risk }) => ({ command: key, status, risk, description })),
+        fields: ["command", "status", "risk", "description"]
       }
     ],
     help: ["Global flags: --format json, --full, --debug, --profile <name>, --as user|bot, --fields a,b,c, --limit N"]
   };
 }
 
-function matchHelpCommand(positionals: string[]): HelpCommand | undefined {
+function matchHelpCommand(positionals: string[]): CommandDefinition | undefined {
   if (positionals.length === 0) return undefined;
   const requested = positionals.join(" ");
-  return HELP_COMMANDS.find((command) => command.command === requested);
+  return findCommand(requested);
 }
 
 async function safeAuth(adapter: LarkCliAdapter): Promise<Record<string, unknown>> {
@@ -310,19 +253,6 @@ function addFlag(values: Record<string, FlagValue>, key: string, value: string |
   }
 }
 
-function forwardUnknown(rest: string[], values: Record<string, FlagValue>): string[] {
-  const forwarded = [...rest];
-  for (const [key, value] of Object.entries(values)) {
-    if (["format", "full", "debug", "profile", "as", "fields", "limit", "help"].includes(key)) continue;
-    const valueList = Array.isArray(value) ? value : [value];
-    for (const item of valueList) {
-      forwarded.push(`--${key}`);
-      if (typeof item === "string") forwarded.push(item);
-    }
-  }
-  return forwarded;
-}
-
 function lastValue(value: FlagValue | undefined): string | boolean | undefined {
   return Array.isArray(value) ? value.at(-1) : value;
 }
@@ -339,6 +269,20 @@ function asIdentity(value: FlagValue | undefined): GlobalOptions["as"] {
 
 function collapseHome(path: string): string {
   return path.startsWith(process.env.HOME ?? "") ? path.replace(process.env.HOME ?? "", "~") : path;
+}
+
+function commandKey(domain: string, subcommand: string | undefined): string {
+  if (domain === "doctor") return "doctor";
+  return `${domain} ${subcommand ?? ""}`.trim();
+}
+
+function validateRequiredFlags(definition: CommandDefinition, values: Record<string, FlagValue>): void {
+  for (const requirement of definition.requiredFlags ?? []) {
+    const choices = requirement.split("|");
+    if (choices.some((choice) => { const s = stringValue(values[choice]); return (s !== undefined && s !== "") || values[choice] === true; })) continue;
+    const formatted = choices.map((choice) => `--${choice}`).join(" or ");
+    throw new UsageError(`${definition.key} requires ${formatted}`, `Example: ${definition.examples.split("\n")[0]}`);
+  }
 }
 
 function toAxiError(error: unknown): AxiError {

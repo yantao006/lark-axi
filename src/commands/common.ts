@@ -1,9 +1,27 @@
 import type { GlobalOptions } from "../types.js";
 
+type FlagValue = string | boolean | string[];
+
+const WRAPPER_FLAGS = new Set(["format", "full", "debug", "profile", "as", "fields", "limit", "help", "execute", "dry-run"]);
+
 export function withForwardedGlobals(args: string[], options: GlobalOptions): string[] {
   const forwarded = [...args];
   if (options.profile) forwarded.push("--profile", options.profile);
   if (options.as && options.as !== "auto") forwarded.push("--as", options.as);
+  return forwarded;
+}
+
+export function forwardCommandArgs(rest: string[], values: Record<string, FlagValue>, skip: string[] = []): string[] {
+  const skipped = new Set([...WRAPPER_FLAGS, ...skip]);
+  const forwarded = [...rest];
+  for (const [key, value] of Object.entries(values)) {
+    if (skipped.has(key)) continue;
+    const valueList = Array.isArray(value) ? value : [value];
+    for (const item of valueList) {
+      forwarded.push(`--${key}`);
+      if (typeof item === "string") forwarded.push(item);
+    }
+  }
   return forwarded;
 }
 
@@ -45,6 +63,16 @@ export function countRecord(rows: Record<string, unknown>[], shown: number, limi
     total_observed: rows.length,
     limit
   };
+}
+
+export function truncateRowText(row: Record<string, unknown>, full: boolean, maxChars = 800): Record<string, unknown> {
+  const output = { ...row };
+  for (const [key, value] of Object.entries(row)) {
+    if (typeof value !== "string" || value.length <= maxChars || full) continue;
+    output[key] = `${value.slice(0, maxChars)}...`;
+    output[`${key}_chars`] = value.length;
+  }
+  return output;
 }
 
 function normalizeRow(value: unknown, fallbackKey: string): Record<string, unknown> {
