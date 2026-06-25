@@ -110,7 +110,7 @@ lark-cli auth login --recommend
 
 ## 命令
 
-运行 `lark-axi --help` 查看当前命令注册表；运行 `lark-axi help <command>` 查看单个命令的用法、参数、示例、覆盖状态和风险类别。
+运行 `lark-axi --help` 查看当前命令注册表；运行 `lark-axi help <command>` 查看单个命令的用法、参数、示例、覆盖状态、风险类别和响应类型。
 
 | 范围 | 命令 |
 | --- | --- |
@@ -229,6 +229,18 @@ lark-cli auth status
 更多说明见 [docs/security.md](docs/security.md)。
 
 写入类命令会被标记为 `write`、`destructive`、`permission`、`external-send` 或 `file-system` 风险类别。
+
+列表命令会附带计数元数据（`shown`、`total_observed`、`limit`），方便 Agent 判断紧凑输出是否被截断。详情命令默认截断大段文本，并提供 `--full` 选项以获取完整内容。
+写操作响应包含生命周期元数据：mode、risk、identity、target、intended effect 和验证提示。
+
+## Agent Skill
+
+可安装 skill 位于 `skills/lark-axi/SKILL.md`，由 `src/skill/generate.ts` 生成。
+
+```bash
+npm run skill:generate
+npm run skill:check
+```
 
 ## 开发
 

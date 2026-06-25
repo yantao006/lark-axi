@@ -124,7 +124,7 @@ lark-cli auth login --recommend
 
 ## Commands
 
-Run `lark-axi --help` for the current registry and `lark-axi help <command>` for command-specific usage, flags, examples, status, and risk class.
+Run `lark-axi --help` for the current registry and `lark-axi help <command>` for command-specific usage, flags, examples, status, risk class, and response kind.
 
 | Area | Commands |
 | --- | --- |
