@@ -165,6 +165,7 @@ const COMMANDS: CommandDefinition[] = [
     examples: "lark-axi drive search --query \"planning\"",
     status: "generic",
     risk: "read",
+    requiredFlags: ["query"],
     upstream: { args: ["drive", "+search"], supportsFormat: true },
     defaultFields: ["title", "type", "url", "token", "owner"],
     empty: "0 drive files found"
