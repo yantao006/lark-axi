@@ -55,7 +55,7 @@ export class NodeCommandRunner implements CommandRunner {
       });
       child.on("error", (error) => {
         clearTimeout(timer);
-        resolve({ code: 1, stdout: "", stderr: error.message });
+        resolve({ code: 1, stdout: "", stderr: error.message, timedOut });
       });
       child.on("close", (code) => {
         clearTimeout(timer);

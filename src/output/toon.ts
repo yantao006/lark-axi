@@ -16,7 +16,7 @@ function scalar(value: unknown): string {
 function compactJson(value: unknown): string {
   const text = JSON.stringify(value);
   if (text.length <= DEFAULT_NESTED_VALUE_MAX_CHARS) return text;
-  return JSON.stringify(`${text.slice(0, DEFAULT_NESTED_VALUE_MAX_CHARS)}...`);
+  return JSON.stringify({ _truncated: true, preview: text.slice(0, DEFAULT_NESTED_VALUE_MAX_CHARS) });
 }
 
 export function renderRecord(name: string, record: Record<string, unknown>): string[] {

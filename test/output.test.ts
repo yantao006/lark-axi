@@ -46,7 +46,7 @@ describe("output rendering", () => {
     }, { format: "compact" });
 
     expect(output.length).toBeLessThan(700);
-    expect(output).toContain("...");
+    expect(output).toContain('"_truncated":true');
   });
 
   it("indents multiline text sections", () => {

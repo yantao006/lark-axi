@@ -15,7 +15,7 @@ export function renderDocument(document: RenderDocument, options: Pick<GlobalOpt
       source: normalized.error.source,
       retryable: normalized.error.retryable,
       message: normalized.error.message,
-      fix: normalized.error.fix.command ?? normalized.error.fix.action
+      fix: normalized.error.fix
     });
     return `${lines.join("\n")}\n`;
   }
@@ -50,9 +50,8 @@ export function renderDocument(document: RenderDocument, options: Pick<GlobalOpt
 function normalizeDocument(document: RenderDocument): RenderDocument {
   return {
     ...document,
-    status: document.error ? "error" : "ok",
-    command: document.command ?? "unknown",
-    nextActions: document.nextActions ?? document.help
+    status: document.status ?? (document.error ? "error" : "ok"),
+    command: document.command ?? "unknown"
   };
 }
 
