@@ -23,7 +23,7 @@ export async function imSearch(adapter: LarkCliAdapter, query: string | undefine
 export async function imSend(adapter: LarkCliAdapter, args: { chatId?: string; text?: string; execute: boolean; dryRun: boolean }, options: GlobalOptions): Promise<RenderDocument> {
   if (!args.chatId) throw new UsageError("im send requires --chat-id", "Example: lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run");
   if (!args.text) throw new UsageError("im send requires --text", "Example: lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run");
-  const safetyArgs = requireMutationApproval({ command: "im send", execute: args.execute, dryRun: args.dryRun });
+  const safetyArgs = requireMutationApproval({ command: "im send", execute: args.execute, dryRun: args.dryRun, risk: "external-send" });
   const value = await adapter.json(withForwardedGlobals(["im", "+messages-send", "--chat-id", args.chatId, "--text", args.text, ...safetyArgs], options));
   return {
     sections: [{ name: args.dryRun ? "dry_run" : "message", record: asRows(value)[0] ?? { ok: true } }]
