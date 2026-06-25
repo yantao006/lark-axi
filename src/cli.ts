@@ -272,7 +272,7 @@ function commandKey(domain: string, subcommand: string | undefined): string {
 function validateRequiredFlags(definition: CommandDefinition, values: Record<string, FlagValue>): void {
   for (const requirement of definition.requiredFlags ?? []) {
     const choices = requirement.split("|");
-    if (choices.some((choice) => stringValue(values[choice]) || values[choice] === true)) continue;
+    if (choices.some((choice) => { const s = stringValue(values[choice]); return (s !== undefined && s !== "") || values[choice] === true; })) continue;
     const formatted = choices.map((choice) => `--${choice}`).join(" or ");
     throw new UsageError(`${definition.key} requires ${formatted}`, `Example: ${definition.examples.split("\n")[0]}`);
   }

@@ -118,7 +118,7 @@ const COMMANDS: CommandDefinition[] = [
     usage: "lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run|--execute",
     flags: "--chat-id or --user-id required; one of --text, --markdown, --content, --image, --file, --video, or --audio required; exactly one of --dry-run or --execute",
     examples:
-      "lark-axi im search --query \"hello\" --fields chat_id,message_id,text\nlark-axi raw im +chat-search --query \"project\"\nlark-axi raw im +chat-list --types group,p2p\nlark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run\nlark-axi im send --chat-id oc_xxx --markdown \"# hello\" --dry-run",
+      "lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run\nlark-axi im send --chat-id oc_xxx --markdown \"# hello\" --dry-run\nHint: find chat IDs with `lark-axi im chats` or `lark-axi im chat-search --query \"project\"`",
     status: "curated",
     risk: "external-send",
     requiredFlags: ["chat-id|user-id", "text|markdown|content|image|file|video|audio"],

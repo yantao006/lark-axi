@@ -25,8 +25,8 @@ describe("lark-axi cli", () => {
     const result = await runCli(["im", "send", "--help"]);
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("--chat-id <oc_xxx>");
-    expect(result.stdout).toContain("lark-axi im search --query \"hello\" --fields chat_id,message_id,text");
-    expect(result.stdout).toContain("lark-axi raw im +chat-search --query \"project\"");
+    expect(result.stdout).toContain("lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run");
+    expect(result.stdout).toContain("im chat-search --query \"project\"");
   });
 
   it("detects symlinked npm bin entrypoints", () => {

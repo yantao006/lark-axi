@@ -6,24 +6,9 @@ import type { CommandDefinition } from "./registry.js";
 import { isMutationRisk } from "./registry.js";
 import { asRows, countRecord, pickFields, truncateRowText, withForwardedGlobals } from "./common.js";
 
-interface GenericReadCommand {
-  args: string[];
-  supportsFormat: boolean;
-}
-
-const READ_COMMANDS: Record<string, GenericReadCommand> = {
-  "drive search": { args: ["drive", "+search"], supportsFormat: true },
-  "base records": { args: ["base", "+record-list"], supportsFormat: true },
-  "sheets info": { args: ["sheets", "+info"], supportsFormat: false },
-  "task list": { args: ["task", "+get-my-tasks"], supportsFormat: true },
-  "markdown fetch": { args: ["markdown", "+fetch"], supportsFormat: false }
-};
-
-export async function genericRead(adapter: LarkCliAdapter, keyOrDefinition: string | CommandDefinition, extra: string[], options: GlobalOptions): Promise<RenderDocument> {
-  const definition = typeof keyOrDefinition === "string" ? undefined : keyOrDefinition;
-  const legacyCommand = typeof keyOrDefinition === "string" ? READ_COMMANDS[keyOrDefinition] : undefined;
-  const upstream = definition?.upstream ?? legacyCommand;
-  const key = typeof keyOrDefinition === "string" ? keyOrDefinition : keyOrDefinition.key;
+export async function genericRead(adapter: LarkCliAdapter, definition: CommandDefinition, extra: string[], options: GlobalOptions): Promise<RenderDocument> {
+  const upstream = definition.upstream;
+  const key = definition.key;
   if (!upstream) throw new UsageError(`Unsupported command '${key}'`, "Run `lark-axi --help` for supported commands.");
   const formatArgs = upstream.supportsFormat ? ["--format", "json"] : [];
   const value = await adapter.json(withForwardedGlobals([...upstream.args, ...extra, ...formatArgs], options));
