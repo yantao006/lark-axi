@@ -122,20 +122,20 @@ lark-cli auth login --recommend
 
 ## Commands
 
-| Command | Description |
+Run `lark-axi --help` for the current registry and `lark-axi help <command>` for command-specific usage, flags, examples, status, and risk class.
+
+| Area | Commands |
 | --- | --- |
-| `lark-axi` | Show runtime, auth summary, discovered domains, and next-step hints. |
-| `lark-axi auth status` | Show compact identity state. |
-| `lark-axi calendar agenda` | List upcoming calendar events. |
-| `lark-axi im search --query <text>` | Search messages. |
-| `lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run\|--execute` | Preview or send a message. |
-| `lark-axi docs fetch --token <token>` | Fetch a document preview. |
-| `lark-axi docs create --title <title> --content <markdown> --dry-run\|--execute` | Preview or create a document. |
-| `lark-axi drive search` | Delegate Drive search through generic read handling. |
-| `lark-axi base records` | Delegate Base record listing through generic read handling. |
-| `lark-axi sheets info` | Inspect spreadsheet metadata. |
-| `lark-axi task list` | List tasks assigned to the current identity. |
-| `lark-axi raw <lark-cli args...>` | Delegate uncovered operations to `lark-cli`. |
+| Runtime and auth | `lark-axi`, `auth status`, `auth scopes`, `auth users`, `doctor` |
+| Calendar | `calendar agenda` |
+| IM | `im search`, `im chats`, `im chat-search`, `im send` |
+| Docs and Markdown | `docs fetch`, `docs search`, `docs create`, `markdown fetch` |
+| Drive | `drive search`, `drive inspect` |
+| Base and Sheets | `base records`, `sheets info` |
+| Tasks and People | `task list`, `contact search` |
+| Fallback | `raw <lark-cli args...>` |
+
+Commands outside this table are raw-first until they have evidence: fixture-backed upstream arguments/output, wrapper tests, safety tests for write-like routes, executable help examples, and documentation/skill updates.
 
 IM IDs:
 
@@ -204,7 +204,7 @@ lark-cli auth status
 `lark-axi` uses three practical layers:
 
 1. **Curated wrappers**: stable, compact commands for common agent workflows.
-2. **Generic reads**: small pass-through wrappers for useful read paths such as Drive, Base, Sheets, and Tasks.
+2. **Generic registry-backed routes**: small forwarding wrappers for useful paths that do not need domain-specific normalization yet.
 3. **Raw fallback**: arbitrary `lark-cli` delegation for operations that are not yet modeled.
 
 See [docs/capabilities.md](docs/capabilities.md) for the current coverage table.
@@ -224,12 +224,14 @@ Default posture:
 
 - It never performs login automatically.
 - It surfaces current identity state before encouraging operations.
-- Curated mutations require `--dry-run` or `--execute`.
+- Curated mutations require exactly one of `--dry-run` or `--execute`.
 - Required mutation inputs are validated before invoking `lark-cli`.
 - Dependency stderr stays out of stdout unless `--debug` is requested.
 - Compact previews are preferred before full body retrieval.
 
 For more detail, see [docs/security.md](docs/security.md).
+
+Write-like commands are risk-classified as `write`, `destructive`, `permission`, `external-send`, or `file-system`.
 
 List commands include count metadata (`shown`, `total_observed`, `limit`) so agents can tell whether a compact response was capped. Detail commands truncate large text by default and include a `--full` escape hatch when content is truncated.
 
