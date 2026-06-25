@@ -14,7 +14,7 @@ import { forwardCommandArgs } from "./commands/common.js";
 import { genericMutation, genericRead } from "./commands/generic.js";
 import { imSearch, imSend } from "./commands/im.js";
 import { runRaw } from "./commands/raw.js";
-import { displayCommands, findCommand, isMutationRisk, type CommandDefinition } from "./commands/registry.js";
+import { displayCommands, findCommand, isMutationRisk, responseKindFor, type CommandDefinition } from "./commands/registry.js";
 
 const KNOWN_LATEST_LARK_CLI = "1.0.57";
 
@@ -24,12 +24,12 @@ export async function runCli(argv: string[], adapterOptions: LarkCliAdapterOptio
 
   try {
     const document = await dispatch(adapter, parsed.positionals, parsed.options, parsed.values);
-    return { code: 0, stdout: renderDocument(document, parsed.options) };
+    return { code: 0, stdout: renderDocument(finalizeDocument(document, parsed.positionals), parsed.options) };
   } catch (error) {
     const axiError = toAxiError(error);
     return {
       code: axiError.exitCode ?? 1,
-      stdout: renderDocument({ error: axiError, sections: [] }, parsed.options),
+      stdout: renderDocument({ command: commandName(parsed.positionals), error: axiError, sections: [] }, parsed.options),
       stderr: parsed.options.debug && error instanceof Error ? `${error.stack ?? error.message}\n` : undefined
     };
   }
@@ -149,6 +149,11 @@ function helpDocument(positionals: string[] = []): RenderDocument {
   if (command) {
     return {
       title: `lark-axi help ${command.key}`,
+      metadata: {
+        status: command.status,
+        risk: command.risk,
+        response_kind: responseKindFor(command)
+      },
       sections: [
         {
           name: "command",
@@ -157,6 +162,7 @@ function helpDocument(positionals: string[] = []): RenderDocument {
             description: command.description,
             status: command.status,
             risk: command.risk,
+            response_kind: responseKindFor(command),
             usage: command.usage,
             flags: command.flags
           }
@@ -175,8 +181,14 @@ function helpDocument(positionals: string[] = []): RenderDocument {
     sections: [
       {
         name: "commands",
-        rows: displayCommands().map(({ key, description, status, risk }) => ({ command: key, status, risk, description })),
-        fields: ["command", "status", "risk", "description"]
+        rows: displayCommands().map((command) => ({
+          command: command.key,
+          status: command.status,
+          risk: command.risk,
+          response_kind: responseKindFor(command),
+          description: command.description
+        })),
+        fields: ["command", "status", "risk", "response_kind", "description"]
       }
     ],
     help: ["Global flags: --format json, --full, --debug, --profile <name>, --as user|bot, --fields a,b,c, --limit N"]
@@ -276,17 +288,45 @@ function commandKey(domain: string, subcommand: string | undefined): string {
   return `${domain} ${subcommand ?? ""}`.trim();
 }
 
+function commandName(positionals: string[]): string {
+  if (positionals.length === 0) return "home";
+  if (positionals[0] === "help") return `help ${positionals.slice(1).join(" ")}`.trim();
+  if (positionals[0] === "raw") return "raw";
+  return commandKey(positionals[0] ?? "", positionals[1]);
+}
+
+function finalizeDocument(document: RenderDocument, positionals: string[]): RenderDocument {
+  const command = document.command ?? commandName(positionals);
+  const definition = findCommand(command);
+  return {
+    ...document,
+    status: document.status ?? "ok",
+    command,
+    metadata: {
+      ...(definition
+        ? {
+            status: definition.status,
+            risk: definition.risk,
+            response_kind: responseKindFor(definition)
+          }
+        : {}),
+      ...(document.metadata ?? {})
+    },
+    nextActions: document.nextActions ?? document.help
+  };
+}
+
 function validateRequiredFlags(definition: CommandDefinition, values: Record<string, FlagValue>): void {
   for (const requirement of definition.requiredFlags ?? []) {
     const choices = requirement.split("|");
     if (choices.some((choice) => { const s = stringValue(values[choice]); return (s !== undefined && s !== "") || values[choice] === true; })) continue;
     const formatted = choices.map((choice) => `--${choice}`).join(" or ");
-    throw new UsageError(`${definition.key} requires ${formatted}`, `Example: ${definition.examples.split("\n")[0]}`);
+    throw new UsageError(`${definition.key} requires ${formatted}`, `Example: ${definition.examples.split("\n")[0]}`, choices);
   }
 }
 
 function toAxiError(error: unknown): AxiError {
-  if (error instanceof UsageError) return usageError(error.message, error.help);
+  if (error instanceof UsageError) return usageError(error.message, error.help, error.missing);
   if (typeof error === "object" && error !== null && "axiError" in error) return (error as { axiError: AxiError }).axiError;
   if (error instanceof Error) return dependencyError(error.message);
   return dependencyError("Unknown error");

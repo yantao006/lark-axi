@@ -2,23 +2,33 @@ import type { GlobalOptions, RenderDocument } from "../types.js";
 import { renderRecord, renderRows } from "./toon.js";
 
 export function renderDocument(document: RenderDocument, options: Pick<GlobalOptions, "format">): string {
+  const normalized = normalizeDocument(document);
   if (options.format === "json") {
-    return `${JSON.stringify(document.error ? { error: document.error } : document, null, 2)}\n`;
+    return `${JSON.stringify(toWireDocument(normalized), null, 2)}\n`;
   }
 
-  if (document.error) {
+  if (normalized.error) {
     const lines = renderRecord("error", {
-      code: document.error.code,
-      message: document.error.message,
-      help: document.error.help ?? ""
+      status: "error",
+      command: normalized.command,
+      code: normalized.error.code,
+      source: normalized.error.source,
+      retryable: normalized.error.retryable,
+      message: normalized.error.message,
+      fix: normalized.error.fix
     });
     return `${lines.join("\n")}\n`;
   }
 
   const lines: string[] = [];
-  if (document.title) lines.push(`title: ${document.title}`);
+  lines.push(...renderRecord("status", {
+    ok: true,
+    command: normalized.command,
+    ...(normalized.metadata ?? {})
+  }));
+  if (normalized.title) lines.push(`title: ${normalized.title}`);
 
-  for (const section of document.sections) {
+  for (const section of normalized.sections) {
     if (section.record) {
       lines.push(...renderRecord(section.name, section.record));
     } else if (section.rows) {
@@ -29,12 +39,36 @@ export function renderDocument(document: RenderDocument, options: Pick<GlobalOpt
     }
   }
 
-  if (document.help && document.help.length > 0) {
-    lines.push(`help[${document.help.length}]:`);
-    for (const item of document.help) lines.push(`  ${item}`);
+  if (normalized.nextActions && normalized.nextActions.length > 0) {
+    lines.push(`next_actions[${normalized.nextActions.length}]:`);
+    for (const item of normalized.nextActions) lines.push(`  ${item}`);
   }
 
   return `${lines.join("\n")}\n`;
+}
+
+function normalizeDocument(document: RenderDocument): RenderDocument {
+  return {
+    ...document,
+    status: document.status ?? (document.error ? "error" : "ok"),
+    command: document.command ?? "unknown"
+  };
+}
+
+function toWireDocument(document: RenderDocument): Record<string, unknown> {
+  const base: Record<string, unknown> = {
+    status: document.status,
+    command: document.command
+  };
+  if (document.title) base.title = document.title;
+  if (document.metadata && Object.keys(document.metadata).length > 0) base.metadata = document.metadata;
+  if (document.error) {
+    base.error = document.error;
+    return base;
+  }
+  base.sections = document.sections;
+  if (document.nextActions && document.nextActions.length > 0) base.next_actions = document.nextActions;
+  return base;
 }
 
 function renderText(name: string, text: string): string[] {

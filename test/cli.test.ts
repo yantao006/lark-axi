@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { isEntrypoint, runCli } from "../src/cli.js";
+import { displayCommands, responseKindFor } from "../src/commands/registry.js";
 import { MockRunner } from "./helpers.js";
 
 describe("lark-axi cli", () => {
@@ -27,6 +28,16 @@ describe("lark-axi cli", () => {
     expect(result.stdout).toContain("--chat-id <oc_xxx>");
     expect(result.stdout).toContain("lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run");
     expect(result.stdout).toContain("im chat-search --query \"project\"");
+  });
+
+  it("keeps registry metadata complete for displayed commands", () => {
+    for (const command of displayCommands()) {
+      expect(command.key).not.toEqual("");
+      expect(command.status).not.toEqual("");
+      expect(command.risk).not.toEqual("");
+      expect(responseKindFor(command)).toMatch(/^(record|list|mutation|raw)$/);
+      expect(command.examples).toContain(`lark-axi ${command.key}`);
+    }
   });
 
   it("detects symlinked npm bin entrypoints", () => {
@@ -83,9 +94,20 @@ Flags:
 
   it("does not invoke lark-cli when mutation lacks approval", async () => {
     const runner = new MockRunner();
-    const result = await runCli(["im", "send", "--chat-id", "oc_x", "--text", "hello"], { runner });
+    const result = await runCli(["im", "send", "--chat-id", "oc_x", "--text", "hello", "--format", "json"], { runner });
+    const body = JSON.parse(result.stdout);
+
     expect(result.code).toBe(2);
-    expect(result.stdout).toContain("USAGE_ERROR");
+    expect(body).toMatchObject({
+      status: "error",
+      command: "im send",
+      error: {
+        code: "USAGE_ERROR",
+        source: "wrapper",
+        retryable: false,
+        fix: { missing: ["dry-run", "execute"] }
+      }
+    });
     expect(runner.calls).toEqual([]);
   });
 
@@ -163,6 +185,37 @@ Flags:
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("risk: external-send");
     expect(runner.calls[0]?.args).toEqual(["im", "+messages-send", "--chat-id", "oc_x", "--markdown", "# hello", "--dry-run", "--format", "json"]);
+  });
+
+  it("renders mutation dry-run lifecycle metadata", async () => {
+    const runner = new MockRunner();
+    runner.respond(["im", "+messages-send", "--chat-id", "oc_x", "--text", "hello", "--dry-run"], {
+      request: { msg_type: "text" }
+    });
+
+    const result = await runCli(["im", "send", "--chat-id", "oc_x", "--text", "hello", "--dry-run", "--format", "json"], { runner });
+    const body = JSON.parse(result.stdout);
+
+    expect(body).toMatchObject({
+      status: "ok",
+      command: "im send",
+      metadata: {
+        risk: "external-send",
+        response_kind: "mutation",
+        mode: "dry-run"
+      },
+      sections: [{
+        name: "dry_run",
+        record: {
+          mode: "dry-run",
+          risk: "external-send",
+          identity: "auto",
+          target: "oc_x",
+          intended_effect: "preview message send without sending"
+        }
+      }]
+    });
+    expect(body.next_actions[0]).toContain("--execute");
   });
 
   it("rejects ambiguous multiple content flags on im send", async () => {

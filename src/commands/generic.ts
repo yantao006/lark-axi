@@ -44,15 +44,24 @@ export async function genericMutation(
   const formatArgs = definition.upstream.supportsFormat ? ["--format", "json"] : [];
   const value = await adapter.json(withForwardedGlobals([...definition.upstream.args, ...extra, ...safetyArgs, ...formatArgs], options));
   const rows = asRows(value);
+  const mode = args.dryRun ? "dry-run" : "execute";
   return {
+    metadata: { mode, risk: definition.risk },
     sections: [
       {
         name: args.dryRun ? "dry_run" : "result",
         record: {
+          mode,
           risk: definition.risk,
+          identity: options.as ?? "auto",
+          target: extra.join(" ") || "(flags only)",
+          intended_effect: args.dryRun ? `preview ${definition.key} without executing` : `execute ${definition.key}`,
           ...(rows[0] ?? { ok: true })
         }
       }
-    ]
+    ],
+    nextActions: args.dryRun
+      ? [`Re-run \`lark-axi ${definition.key}\` with --execute only after the target and content are approved.`]
+      : [`Verify the result with a read command or \`lark-axi raw ...\` when no curated read exists.`]
   };
 }

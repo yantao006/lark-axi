@@ -2,13 +2,21 @@ function needsQuotes(value: string): boolean {
   return value === "" || /[\n,:{}\[\]"#]|^\s|\s$/.test(value);
 }
 
+const DEFAULT_NESTED_VALUE_MAX_CHARS = 400;
+
 function scalar(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   if (value instanceof Date) return value.toISOString();
-  if (typeof value === "object") return JSON.stringify(value);
+  if (typeof value === "object") return compactJson(value);
   const text = String(value);
   return needsQuotes(text) ? JSON.stringify(text) : text;
+}
+
+function compactJson(value: unknown): string {
+  const text = JSON.stringify(value);
+  if (text.length <= DEFAULT_NESTED_VALUE_MAX_CHARS) return text;
+  return JSON.stringify({ _truncated: true, preview: text.slice(0, DEFAULT_NESTED_VALUE_MAX_CHARS) });
 }
 
 export function renderRecord(name: string, record: Record<string, unknown>): string[] {

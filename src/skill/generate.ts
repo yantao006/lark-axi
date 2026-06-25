@@ -39,10 +39,13 @@ ${COMMAND_GUIDANCE}
 
 - Prefer curated \`lark-axi\` commands before \`raw\`; curated commands return smaller agent-oriented output.
 - Use \`lark-axi help <command>\` or \`lark-axi <command> --help\` before using a command whose flags are unclear.
+- Treat every response as structured: read \`status\`, \`command\`, metadata, sections, and \`next_actions\`.
+- For failures, read \`error.source\`, \`error.retryable\`, and \`error.fix\` before deciding whether to correct arguments, authenticate, request scopes, retry, or inspect upstream help.
 - Read the count metadata on list commands: \`shown\`, \`total_observed\`, and \`limit\` tell you whether the compact response was capped.
-- Use \`--format json\` only when exact machine-readable fields are needed.
+- Use compact TOON output by default; use \`--format json\` only when exact machine-readable fields are needed.
 - Use \`--full\` only after a truncated preview proves the full body is needed.
 - For writes, use \`--dry-run\` first unless the user has explicitly authorized the exact action.
+- After writes, follow the verification hint in \`next_actions\`.
 - Do not run \`lark-cli auth login\` automatically; surface the login command and wait for the user.
 - Use uncovered lark-cli operations through \`lark-axi raw <lark-cli args...>\`.
 `;

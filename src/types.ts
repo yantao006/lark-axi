@@ -20,6 +20,7 @@ export interface ProcessResult {
   code: number;
   stdout: string;
   stderr: string;
+  timedOut?: boolean;
 }
 
 export interface CommandRunner {
@@ -31,6 +32,13 @@ export interface AxiError {
   code: string;
   message: string;
   help?: string;
+  source: "wrapper" | "dependency" | "auth" | "scope" | "upstream_usage" | "upstream_service" | "timeout" | "unknown";
+  retryable: boolean;
+  fix: {
+    action: string;
+    command?: string;
+    missing?: string[];
+  };
   exitCode?: number;
   details?: Record<string, unknown>;
 }
@@ -45,8 +53,12 @@ export interface RenderSection {
 }
 
 export interface RenderDocument {
+  status?: "ok" | "error";
+  command?: string;
   title?: string;
+  metadata?: Record<string, unknown>;
   sections: RenderSection[];
+  nextActions?: string[];
   help?: string[];
   error?: AxiError;
 }

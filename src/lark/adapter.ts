@@ -39,7 +39,9 @@ export class NodeCommandRunner implements CommandRunner {
       });
       let stdout = "";
       let stderr = "";
+      let timedOut = false;
       const timer = setTimeout(() => {
+        timedOut = true;
         child.kill("SIGTERM");
       }, options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
 
@@ -53,11 +55,11 @@ export class NodeCommandRunner implements CommandRunner {
       });
       child.on("error", (error) => {
         clearTimeout(timer);
-        resolve({ code: 1, stdout: "", stderr: error.message });
+        resolve({ code: 1, stdout: "", stderr: error.message, timedOut });
       });
       child.on("close", (code) => {
         clearTimeout(timer);
-        resolve({ code: code ?? 1, stdout, stderr });
+        resolve({ code: code ?? 1, stdout, stderr, timedOut });
       });
     });
   }

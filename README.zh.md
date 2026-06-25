@@ -12,6 +12,8 @@
 
 - **基于官方 CLI**：认证、权限范围、应用配置、Schema 覆盖、分页和平台行为仍由 `lark-cli` 负责。
 - **面向 Agent 的默认输出**：默认输出更短、更稳定，适合 shell 型 Agent 快速读取上下文。
+- **结构化响应契约**：每个成功或失败响应都包含命令身份、状态、元数据和下一步动作，方便 Agent 分支处理。
+- **面向修复的错误**：每个错误都包含具体修复动作和来源分类，而不是只暴露原始 stderr。
 - **更安全的写操作**：受管写命令必须显式传入 `--dry-run` 或 `--execute`，并在调用 `lark-cli` 前校验必要参数。
 - **渐进式覆盖**：优先封装高价值工作流，未覆盖能力仍可通过 `raw` 使用。
 - **结构化失败**：依赖缺失、参数错误和上游错误会被整理成可预测的记录，而不是无边界 stderr。
@@ -108,7 +110,7 @@ lark-cli auth login --recommend
 
 ## 命令
 
-运行 `lark-axi --help` 查看当前命令注册表；运行 `lark-axi help <command>` 查看单个命令的用法、参数、示例、覆盖状态和风险类别。
+运行 `lark-axi --help` 查看当前命令注册表；运行 `lark-axi help <command>` 查看单个命令的用法、参数、示例、覆盖状态、风险类别和响应类型。
 
 | 范围 | 命令 |
 | --- | --- |
@@ -157,6 +159,14 @@ lark-axi raw api GET /open-apis/calendar/v4/calendars
 ## 输出模型
 
 默认输出是为 Agent 消费优化的紧凑格式。它会有意摘要大型上游 payload，而不是复刻 `lark-cli` 的每一个字段。
+紧凑格式和 JSON 格式共享同一个语义 envelope：
+
+- `status`：`ok` 或 `error`
+- `command`：产生响应的 wrapper 命令
+- `metadata`：命令覆盖状态、风险类别、响应类型，以及必要的命令模式
+- `sections`：record、rows 或 text blocks
+- `next_actions`：具体的后续命令或验证提示
+- `error.fix`：失败时的具体修复动作
 
 示例：
 
@@ -165,12 +175,20 @@ lark-axi auth status
 ```
 
 ```text
+status:
+  ok: true
+  command: auth status
+  status: curated
+  risk: read
+  response_kind: record
 auth:
   brand: feishu
   identity: user
   default_as: auto
   user: 示例用户
   note: ""
+next_actions[1]:
+  Run `lark-cli auth login --recommend` if user token is missing.
 ```
 
 需要精确字段时使用 JSON：
@@ -211,6 +229,18 @@ lark-cli auth status
 更多说明见 [docs/security.md](docs/security.md)。
 
 写入类命令会被标记为 `write`、`destructive`、`permission`、`external-send` 或 `file-system` 风险类别。
+
+列表命令会附带计数元数据（`shown`、`total_observed`、`limit`），方便 Agent 判断紧凑输出是否被截断。详情命令默认截断大段文本，并提供 `--full` 选项以获取完整内容。
+写操作响应包含生命周期元数据：mode、risk、identity、target、intended effect 和验证提示。
+
+## Agent Skill
+
+可安装 skill 位于 `skills/lark-axi/SKILL.md`，由 `src/skill/generate.ts` 生成。
+
+```bash
+npm run skill:generate
+npm run skill:check
+```
 
 ## 开发
 
