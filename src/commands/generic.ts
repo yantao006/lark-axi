@@ -54,7 +54,7 @@ export async function genericMutation(
           mode,
           risk: definition.risk,
           identity: options.as ?? "auto",
-          target: extra.join(" "),
+          target: extra.join(" ") || "(flags only)",
           intended_effect: args.dryRun ? `preview ${definition.key} without executing` : `execute ${definition.key}`,
           ...(rows[0] ?? { ok: true })
         }

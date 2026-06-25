@@ -110,7 +110,7 @@ function extractCommand(text: string | undefined): string | undefined {
 function classifyUpstreamSource(type: string | undefined, message: string | undefined): AxiError["source"] {
   const text = `${type ?? ""} ${message ?? ""}`.toLowerCase();
   if (text.includes("scope")) return "scope";
-  if (text.includes("auth") || text.includes("token") || text.includes("login")) return "auth";
+  if (text.includes("auth") || text.includes("access_token") || text.includes("login")) return "auth";
   if (text.includes("usage") || text.includes("argument") || text.includes("flag")) return "upstream_usage";
   return "upstream_service";
 }
