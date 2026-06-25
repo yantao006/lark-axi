@@ -11,6 +11,7 @@ Default posture:
 - Keep dependency stderr out of stdout unless `--debug` is requested.
 - Strip `[lark-cli] [WARN]` lines from error output.
 - Extract structured upstream error fields (`type`, `message`, `hint`) from `lark-cli` JSON error responses when available.
+- Include a structured `fix` action, failure `source`, and `retryable` marker on every error.
 - Prefer previews and compact summaries before full body retrieval.
 
 Use bot or user identity intentionally with `--as bot`, `--as user`, or `--as auto` when the upstream command supports it.
@@ -29,6 +30,8 @@ Registry-backed commands are classified before execution:
 | file-system | Reads or writes local files while interacting with Lark/Feishu resources. | Future upload/download routes after evidence exists. |
 
 Write-like risk classes are blocked unless the caller supplies `--dry-run` or `--execute`. Passing both flags is treated as a usage error.
+
+Mutation responses identify mode, risk, identity, target, intended effect, and a verification hint. A dry run must not claim that the external side effect happened; an execute response should give the agent a concrete way to verify the result.
 
 ## Raw Fallback
 

@@ -12,6 +12,8 @@ Agent-facing AXI wrapper around the official Lark/Feishu [`lark-cli`](https://gi
 
 - **Built on the official CLI**: authentication, scopes, app configuration, schema coverage, pagination, and platform behavior remain owned by `lark-cli`.
 - **Agent-oriented defaults**: command output is compact and stable enough for shell-based agents to inspect without pulling large JSON payloads by default.
+- **Structured response contract**: every success and error includes command identity, status, metadata, and next actions so agents can branch reliably.
+- **Fix-oriented errors**: every error includes a concrete fix action and source classification instead of only raw stderr.
 - **Safer mutations**: curated write commands require either `--dry-run` or `--execute`, and required arguments are validated before calling `lark-cli`.
 - **Progressive coverage**: high-value workflows get curated wrappers first; everything else remains available through `raw`.
 - **Structured failure modes**: dependency, usage, and upstream errors render as predictable records instead of unbounded stderr.
@@ -171,6 +173,14 @@ lark-axi raw api GET /open-apis/calendar/v4/calendars
 ## Output Model
 
 Default output is compact and optimized for agent consumption. It intentionally summarizes large upstream payloads instead of reproducing every field from `lark-cli`.
+Every response has the same semantic envelope in compact and JSON modes:
+
+- `status`: `ok` or `error`
+- `command`: the wrapper command that produced the response
+- `metadata`: command status, risk class, response kind, and command-specific mode when useful
+- `sections`: records, rows, or text blocks
+- `next_actions`: concrete follow-up commands or verification hints
+- `error.fix`: the specific remediation for failures
 
 Examples:
 
@@ -179,12 +189,20 @@ lark-axi auth status
 ```
 
 ```text
+status:
+  ok: true
+  command: auth status
+  status: curated
+  risk: read
+  response_kind: record
 auth:
   brand: feishu
   identity: user
   default_as: auto
   user: Example User
   note: ""
+next_actions[1]:
+  Run `lark-cli auth login --recommend` if user token is missing.
 ```
 
 Use JSON when exact fields are needed:
@@ -234,6 +252,7 @@ For more detail, see [docs/security.md](docs/security.md).
 Write-like commands are risk-classified as `write`, `destructive`, `permission`, `external-send`, or `file-system`.
 
 List commands include count metadata (`shown`, `total_observed`, `limit`) so agents can tell whether a compact response was capped. Detail commands truncate large text by default and include a `--full` escape hatch when content is truncated.
+Mutation responses include lifecycle metadata such as mode, risk, identity, target, intended effect, and a verification hint.
 
 ## Agent Skill
 

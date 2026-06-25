@@ -14,6 +14,7 @@ export interface CommandDefinition {
   examples: string;
   status: CommandStatus;
   risk: RiskClass;
+  responseKind?: "record" | "list" | "mutation" | "raw";
   upstream?: UpstreamCommand;
   requiredFlags?: string[];
   defaultFields?: string[];
@@ -268,4 +269,12 @@ export function displayCommands(): CommandDefinition[] {
 
 export function isMutationRisk(risk: RiskClass): boolean {
   return risk !== "read" && risk !== "long-running";
+}
+
+export function responseKindFor(command: CommandDefinition): NonNullable<CommandDefinition["responseKind"]> {
+  if (command.responseKind) return command.responseKind;
+  if (command.status === "raw-only") return "raw";
+  if (isMutationRisk(command.risk)) return "mutation";
+  if (command.defaultFields || command.empty) return "list";
+  return "record";
 }

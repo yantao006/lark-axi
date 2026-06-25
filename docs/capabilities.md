@@ -29,9 +29,20 @@
 
 ## Output Structure
 
-List commands prepend count metadata with `shown`, `total_observed`, and `limit` fields so agents can detect capped responses. Detail and mutation commands render compact records. Long string fields in generic read rows are truncated by default and include `<field>_chars` metadata.
+Every response has a stable envelope in both compact and JSON modes:
+
+- `status`: `ok` or `error`
+- `command`: the wrapper command that produced the response
+- `metadata`: command status, risk class, response kind, and command-specific mode when useful
+- `sections`: records, rows, or text blocks
+- `next_actions`: concrete follow-up commands or verification hints
+- `error.fix`: the specific remediation for failures
+
+List commands prepend count metadata with `shown`, `total_observed`, and `limit` fields so agents can detect capped responses. Detail and mutation commands render compact records. Long string fields in generic read rows are truncated by default and include `<field>_chars` metadata. Large nested values in compact output are bounded so raw or preview payloads do not dominate the context window.
 
 Use `--format json` when exact machine-readable sections are needed. Use `--full` only after a preview proves the full body is needed.
+
+Mutation responses include lifecycle metadata: mode, risk, identity, target, intended effect, upstream result, and a verification-oriented next action.
 
 ## Safety Classes
 
@@ -58,6 +69,7 @@ Upstream `lark-cli` errors are cleaned before display:
 - Structured upstream error JSON (`{error: {type, message, hint}}`) is parsed and surfaced as the primary error fields.
 - When no structured error is found, combined stdout/stderr is used as the error message.
 - AXI-level validation errors are surfaced before invoking `lark-cli`.
+- Every error includes `source`, `retryable`, and `fix` fields so agents can decide whether to correct arguments, authenticate, request scopes, retry, or inspect upstream help.
 
 ## Remaining Raw-First Areas
 
