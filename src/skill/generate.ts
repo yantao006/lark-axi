@@ -39,6 +39,7 @@ ${COMMAND_GUIDANCE}
 
 - Prefer curated \`lark-axi\` commands before \`raw\`; curated commands return smaller agent-oriented output.
 - Use \`lark-axi help <command>\` or \`lark-axi <command> --help\` before using a command whose flags are unclear.
+- For \`im send\`, provide either \`--chat-id oc_xxx\` or \`--user-id <user_id>\` and exactly one content flag: \`--text\`, \`--markdown\`, \`--content\`, \`--image\`, \`--file\`, \`--video\`, or \`--audio\`.
 - Treat every response as structured: read \`status\`, \`command\`, metadata, sections, and \`next_actions\`.
 - For failures, read \`error.source\`, \`error.retryable\`, and \`error.fix\` before deciding whether to correct arguments, authenticate, request scopes, retry, or inspect upstream help.
 - Read the count metadata on list commands: \`shown\`, \`total_observed\`, and \`limit\` tell you whether the compact response was capped.

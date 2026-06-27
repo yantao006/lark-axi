@@ -31,7 +31,7 @@ The upstream `lark-cli` is already mature and agent-aware: it is the official La
 
 **Capability coverage**
 
-- R5. Start with a curated command surface for high-value agent workflows: auth/status, calendar agenda/events, IM send/search, Docs/Markdown create/fetch/update, Drive search/download/upload, Base records, Sheets, and Tasks.
+- R5. Start with command-level coverage for high-value agent workflows: auth status, calendar agenda, IM search/send, Docs fetch/create, Drive search, Base records, Sheets info, Task list, and raw fallback. Keep Markdown update/fetch, Drive download/upload, task writes, and Base/Sheets writes raw-first until command evidence lands.
 - R6. Preserve an escape hatch to `lark-cli api` and `lark-cli schema` for uncovered Feishu APIs.
 - R7. Generate or maintain a capability inventory from `lark-cli --help`, domain help, and schema metadata so wrapper coverage can track upstream changes.
 
@@ -176,7 +176,7 @@ docs/
 
 ### U5. Curated Read Commands
 
-- **Goal:** Implement first-class read-oriented AXI commands for common agent tasks across calendar, IM, Docs/Markdown, Drive, Base, Sheets, and Tasks.
+- **Goal:** Implement first-class read-oriented AXI commands for common agent tasks across calendar, IM, Docs, Drive, Base, Sheets, and Tasks.
 - **Requirements:** R2, R5, R6.
 - **Dependencies:** U2, U3, U4.
 - **Files:** `src/commands/calendar.ts`, `src/commands/im.ts`, `src/commands/docs.ts`, `src/commands/drive.ts`, `src/commands/base.ts`, `src/commands/sheets.ts`, `src/commands/task.ts`, `test/cli.test.ts`.
@@ -187,7 +187,7 @@ docs/
 
 ### U6. Safe Mutation Commands
 
-- **Goal:** Add write operations with explicit side-effect controls for sending messages, creating docs, updating markdown, creating tasks, and writing Base/Sheets records.
+- **Goal:** Add write operations with explicit side-effect controls for sending messages and creating docs; leave markdown updates, task creation, and Base/Sheets writes raw-first until command evidence lands.
 - **Requirements:** R4, R5, R8.
 - **Dependencies:** U2, U3, U5.
 - **Files:** `src/safety/policy.ts`, `src/commands/im.ts`, `src/commands/docs.ts`, `src/commands/base.ts`, `src/commands/sheets.ts`, `src/commands/task.ts`, `test/safety.test.ts`.
@@ -273,4 +273,3 @@ docs/
 - `kunchenguid/gh-axi`: Reference implementation wraps official `gh`, ships npm/npx usage and an Agent Skill, and exposes GitHub operations with compact output and structured error handling.
 - `larksuite/cli`: Official Lark/Feishu CLI with 200+ commands, 26 AI Agent Skills, auth/status commands, shortcut/API/raw layers, output formats, pagination, dry-run, and schema introspection.
 - Local machine check: `lark-cli` is installed at `/opt/homebrew/bin/lark-cli`; local version is `1.0.32`; `auth status` reports missing user token and available bot identity.
-
