@@ -16,21 +16,16 @@
 
 | Domain | Wrapper commands |
 | --- | --- |
-| auth | `auth status` |
+| auth / health | `auth status`, `auth scopes`, `auth users`, `doctor` |
 | calendar | `calendar agenda` |
-| im | `im search`, `im send` |
-| docs | `docs fetch`, `docs create` |
-| drive | `drive search` |
+| im | `im search`, `im chats`, `im chat-search`, `im send` |
+| docs | `docs fetch`, `docs search`, `docs create` |
+| drive / markdown | `drive search`, `drive inspect`, `markdown fetch` |
 | base | `base records` |
 | sheets | `sheets info` |
 | task | `task list` |
+| contact | `contact search` |
 | raw | `raw <lark-cli args...>` |
-
-## Command Contracts
-
-`im send` accepts either `--chat-id oc_xxx` or `--user-id <user_id>` and exactly one content flag: `--text`, `--markdown`, `--content`, `--image`, `--file`, `--video`, or `--audio`. Missing target/content flags and conflicting content flags fail before `lark-cli` is invoked.
-
-`drive search` requires a non-empty `--query`. Registry-backed required flags are validated before the upstream shortcut runs, including flags accidentally provided without a value.
 
 ## Output Structure
 
@@ -41,7 +36,7 @@ Every response has a stable envelope in both compact and JSON modes:
 - `metadata`: command status, risk class, response kind, and command-specific mode when useful
 - `sections`: records, rows, or text blocks
 - `next_actions`: concrete follow-up commands or verification hints
-- `error.source`, `error.retryable`, and `error.fix`: the failure class, retry signal, and specific remediation
+- `error.fix`: the specific remediation for failures
 
 List commands prepend count metadata with `shown`, `total_observed`, and `limit` fields so agents can detect capped responses. Detail and mutation commands render compact records. Long string fields in generic read rows are truncated by default and include `<field>_chars` metadata. Large nested values in compact output are bounded so raw or preview payloads do not dominate the context window.
 
@@ -55,7 +50,7 @@ Registry-backed commands carry a risk class:
 
 | Risk | Examples | Wrapper behavior |
 | --- | --- | --- |
-| read | `docs fetch`, `im search`, `drive search`, `task list` | No mutation approval required. |
+| read | `auth scopes`, `im chats`, `docs search`, `drive inspect`, `contact search` | No mutation approval required; required flags must have non-empty values. |
 | write | `docs create` | Requires `--dry-run` or `--execute`. |
 | destructive | Future delete routes after evidence exists. | Requires `--dry-run` or `--execute` and labels the risk in output/errors. |
 | permission | Future permission routes after evidence exists. | Requires `--dry-run` or `--execute`. |
@@ -73,13 +68,11 @@ Upstream `lark-cli` errors are cleaned before display:
 - `[lark-cli] [WARN]` lines are stripped from stderr.
 - Structured upstream error JSON (`{error: {type, message, hint}}`) is parsed and surfaced as the primary error fields.
 - When no structured error is found, combined stdout/stderr is used as the error message.
-- AXI-level validation errors are surfaced before invoking `lark-cli`.
+- AXI-level validation errors are surfaced before invoking `lark-cli`, including missing or bare required value flags.
 - Every error includes `source`, `retryable`, and `fix` fields so agents can decide whether to correct arguments, authenticate, request scopes, retry, or inspect upstream help.
-
-Error sources are `wrapper`, `dependency`, `auth`, `scope`, `upstream_usage`, `upstream_service`, `timeout`, or `unknown`. Upstream service and timeout failures are marked retryable; argument, auth, scope, and local dependency failures are not.
 
 ## Remaining Raw-First Areas
 
-The wrapper still leaves auth scope/user listing, doctor health checks, calendar writes, IM chat lookup/reply/message detail/download, docs search/update/media, markdown fetch, drive inspect/upload/download/delete/permissions, Base/Sheets writes and schema reads, task writes/search, contact search/detail, mail, meetings, minutes, notes, wiki, specialized apps, approval, OKR, attendance, event streaming, slides, whiteboard, and generated OpenAPI command groups behind `raw`.
+The wrapper still leaves calendar writes, IM reply/message detail/download, docs update/media, drive upload/download/delete/permissions, Base/Sheets writes and schema reads, task writes/search, contact detail, mail, meetings, minutes, notes, wiki, specialized apps, approval, OKR, attendance, event streaming, slides, whiteboard, and generated OpenAPI command groups behind `raw`.
 
 Add curated or generic registry coverage only when the command has evidence: realistic upstream argument/output fixtures, wrapper routing or normalization tests, safety tests for write-like routes, executable help examples, and documentation/skill updates. Use the full checklist in [docs/governance.md](governance.md); if the checklist is incomplete, keep the command raw-first.

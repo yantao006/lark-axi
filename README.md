@@ -115,7 +115,6 @@ lark-axi docs fetch --token <doc-token>
 
 # 4. Preview mutations before execution
 lark-axi im send --chat-id oc_xxx --text "hello" --dry-run
-lark-axi im send --chat-id oc_xxx --markdown "# Progress" --dry-run
 lark-axi docs create --title "Weekly" --content "# Progress" --dry-run
 ```
 
@@ -131,13 +130,13 @@ Run `lark-axi --help` for the current registry and `lark-axi help <command>` for
 
 | Area | Commands |
 | --- | --- |
-| Runtime and auth | `lark-axi`, `auth status` |
+| Runtime and auth | `lark-axi`, `auth status`, `auth scopes`, `auth users`, `doctor` |
 | Calendar | `calendar agenda` |
-| IM | `im search`, `im send` |
-| Docs | `docs fetch`, `docs create` |
-| Drive | `drive search` |
+| IM | `im search`, `im chats`, `im chat-search`, `im send` |
+| Docs and Markdown | `docs fetch`, `docs search`, `docs create`, `markdown fetch` |
+| Drive | `drive search`, `drive inspect` |
 | Base and Sheets | `base records`, `sheets info` |
-| Tasks | `task list` |
+| Tasks and People | `task list`, `contact search` |
 | Fallback | `raw <lark-cli args...>` |
 
 Commands outside this table are raw-first until they have evidence: fixture-backed upstream arguments/output, wrapper tests, safety tests for write-like routes, executable help examples, and documentation/skill updates.
@@ -146,10 +145,9 @@ Use the checklist in [docs/governance.md](docs/governance.md) before adding any 
 IM IDs:
 
 - `chat_id` identifies a group or P2P conversation and starts with `oc_`.
-- `im send` accepts either `--chat-id oc_xxx` or `--user-id <user_id>` plus exactly one content flag: `--text`, `--markdown`, `--content`, `--image`, `--file`, `--video`, or `--audio`.
 - `message_id` starts with `om_`; sender user IDs start with `ou_`; app IDs start with `cli_`.
 - Use `lark-axi im search --query "hello"` to see matching messages with their `chat_id`.
-- Use `lark-axi raw im +chat-search --query "project"` or `lark-axi raw im +chat-list --types group,p2p` to look up chats directly.
+- Use `lark-axi im chat-search --query "project"` or `lark-axi im chats --types group,p2p` to look up chats directly.
 
 Global flags:
 
@@ -185,7 +183,7 @@ Every response has the same semantic envelope in compact and JSON modes:
 - `metadata`: command status, risk class, response kind, and command-specific mode when useful
 - `sections`: records, rows, or text blocks
 - `next_actions`: concrete follow-up commands or verification hints
-- `error.source`, `error.retryable`, and `error.fix`: the failure class, retry signal, and specific remediation
+- `error.fix`: the specific remediation for failures
 
 Examples:
 
@@ -248,7 +246,7 @@ Default posture:
 - It never performs login automatically.
 - It surfaces current identity state before encouraging operations.
 - Curated mutations require exactly one of `--dry-run` or `--execute`.
-- Required mutation inputs are validated before invoking `lark-cli`.
+- Required registry inputs are validated before invoking `lark-cli`, including flags accidentally provided without a value.
 - Dependency stderr stays out of stdout unless `--debug` is requested.
 - Compact previews are preferred before full body retrieval.
 

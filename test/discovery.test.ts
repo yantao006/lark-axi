@@ -29,10 +29,22 @@ Flags:
 `);
 
     expect(commands).toEqual([
-      { domain: "im", command: "+chat-list", description: "List chats", status: "raw-only" },
+      { domain: "im", command: "+chat-list", description: "List chats", status: "generic" },
       { domain: "im", command: "+messages-send", description: "Send message", status: "curated" },
       { domain: "im", command: "+unknown-new", description: "New upstream shortcut", status: "raw-only" },
       { domain: "im", command: "messages", description: "messages operations", status: "pass-through" }
+    ]);
+  });
+
+  it("classifies contact search-user shortcut as contact search coverage", () => {
+    const commands = parseDomainCommands("contact", `Available Commands:
+  +search-user      Search users
+
+Flags:
+`);
+
+    expect(commands).toEqual([
+      { domain: "contact", command: "+search-user", description: "Search users", status: "generic" }
     ]);
   });
 });

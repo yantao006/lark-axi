@@ -10,7 +10,7 @@ const COMMAND_GUIDANCE = displayCommands()
 
 export const SKILL_CONTENT = `---
 name: lark-axi
-description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, docs, drive, base, sheets, tasks, auth status, and raw lark-cli fallback.
+description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, contacts, docs, drive, base, sheets, markdown, tasks, auth status, and raw lark-cli fallback.
 ---
 
 # Lark AXI
@@ -39,7 +39,6 @@ ${COMMAND_GUIDANCE}
 
 - Prefer curated \`lark-axi\` commands before \`raw\`; curated commands return smaller agent-oriented output.
 - Use \`lark-axi help <command>\` or \`lark-axi <command> --help\` before using a command whose flags are unclear.
-- For \`im send\`, provide either \`--chat-id oc_xxx\` or \`--user-id <user_id>\` and exactly one content flag: \`--text\`, \`--markdown\`, \`--content\`, \`--image\`, \`--file\`, \`--video\`, or \`--audio\`.
 - Treat every response as structured: read \`status\`, \`command\`, metadata, sections, and \`next_actions\`.
 - For failures, read \`error.source\`, \`error.retryable\`, and \`error.fix\` before deciding whether to correct arguments, authenticate, request scopes, retry, or inspect upstream help.
 - Read the count metadata on list commands: \`shown\`, \`total_observed\`, and \`limit\` tell you whether the compact response was capped.

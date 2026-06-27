@@ -101,7 +101,6 @@ lark-axi docs fetch --token <doc-token>
 
 # 4. 写操作先预览
 lark-axi im send --chat-id oc_xxx --text "hello" --dry-run
-lark-axi im send --chat-id oc_xxx --markdown "# Progress" --dry-run
 lark-axi docs create --title "Weekly" --content "# Progress" --dry-run
 ```
 
@@ -117,13 +116,13 @@ lark-cli auth login --recommend
 
 | 范围 | 命令 |
 | --- | --- |
-| 运行时与认证 | `lark-axi`, `auth status` |
+| 运行时与认证 | `lark-axi`, `auth status`, `auth scopes`, `auth users`, `doctor` |
 | 日历 | `calendar agenda` |
-| 即时通讯 | `im search`, `im send` |
-| 文档 | `docs fetch`, `docs create` |
-| 云盘 | `drive search` |
+| 即时通讯 | `im search`, `im chats`, `im chat-search`, `im send` |
+| 文档与 Markdown | `docs fetch`, `docs search`, `docs create`, `markdown fetch` |
+| 云盘 | `drive search`, `drive inspect` |
 | 多维表格与电子表格 | `base records`, `sheets info` |
-| 任务 | `task list` |
+| 任务与联系人 | `task list`, `contact search` |
 | Fallback | `raw <lark-cli args...>` |
 
 表外命令默认 raw-first，只有具备证据后才进入 curated/generic：真实上游参数/输出 fixture、wrapper 路由或归一化测试、写类命令安全测试、可执行 help 示例，以及文档和 skill 同步。
@@ -132,10 +131,9 @@ lark-cli auth login --recommend
 IM ID 说明：
 
 - `chat_id` 表示群聊或单聊会话，前缀是 `oc_`。
-- `im send` 支持 `--chat-id oc_xxx` 或 `--user-id <user_id>`，并且必须搭配且只能搭配一个内容参数：`--text`、`--markdown`、`--content`、`--image`、`--file`、`--video` 或 `--audio`。
 - `message_id` 前缀是 `om_`；发送者用户 ID 前缀通常是 `ou_`；应用 ID 前缀是 `cli_`。
 - 用 `lark-axi im search --query "hello"` 可以在匹配消息里看到 `chat_id`。
-- 用 `lark-axi raw im +chat-search --query "project"` 或 `lark-axi raw im +chat-list --types group,p2p` 可以直接查找会话。
+- 用 `lark-axi im chat-search --query "project"` 或 `lark-axi im chats --types group,p2p` 可以直接查找会话。
 
 全局参数：
 
@@ -171,7 +169,7 @@ lark-axi raw api GET /open-apis/calendar/v4/calendars
 - `metadata`：命令覆盖状态、风险类别、响应类型，以及必要的命令模式
 - `sections`：record、rows 或 text blocks
 - `next_actions`：具体的后续命令或验证提示
-- `error.source`、`error.retryable` 和 `error.fix`：失败类别、重试信号和具体修复动作
+- `error.fix`：失败时的具体修复动作
 
 示例：
 
@@ -227,7 +225,7 @@ lark-cli auth status
 - 不自动执行登录。
 - 在鼓励操作前展示当前身份状态。
 - 受管写操作必须且只能使用 `--dry-run` 或 `--execute` 其中一个。
-- 调用 `lark-cli` 前先校验必要写入参数。
+- 调用 `lark-cli` 前先校验注册表声明的必要参数，包括误传但没有取值的参数。
 - 除非启用 `--debug`，否则依赖 stderr 不混入 stdout。
 - 优先使用紧凑预览，再按需获取完整内容。
 
