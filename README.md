@@ -16,7 +16,7 @@ Development currently continues from `origin/feat/lark-axi-wrapper@4484fd9e6a7a4
 - **Agent-oriented defaults**: command output is compact and stable enough for shell-based agents to inspect without pulling large JSON payloads by default.
 - **Structured response contract**: every success and error includes command identity, status, metadata, and next actions so agents can branch reliably.
 - **Fix-oriented errors**: every error includes a concrete fix action and source classification instead of only raw stderr.
-- **Safer mutations**: curated write commands require either `--dry-run` or `--execute`, and required arguments are validated before calling `lark-cli`.
+- **Safer mutations**: curated write commands require exactly one of `--dry-run` or `--execute`, and required arguments are validated before calling `lark-cli`.
 - **Progressive coverage**: high-value workflows get curated wrappers first; everything else remains available through `raw`.
 - **Structured failure modes**: dependency, usage, and upstream errors render as predictable records instead of unbounded stderr.
 
@@ -246,7 +246,7 @@ Default posture:
 - It never performs login automatically.
 - It surfaces current identity state before encouraging operations.
 - Curated mutations require exactly one of `--dry-run` or `--execute`.
-- Required mutation inputs are validated before invoking `lark-cli`.
+- Required registry inputs are validated before invoking `lark-cli`, including flags accidentally provided without a value.
 - Dependency stderr stays out of stdout unless `--debug` is requested.
 - Compact previews are preferred before full body retrieval.
 

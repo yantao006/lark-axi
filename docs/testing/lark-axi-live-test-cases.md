@@ -74,6 +74,7 @@ After a significant change to command routing, adapters, output rendering, safet
 | T22 | IM chat lookup | `npm run dev -- im chat-search --query "$LARK_AXI_IM_QUERY" --limit 2 --format json` | Returns compact chat rows with usable chat IDs or a classified empty/permission state. | read-only |
 | T23 | Drive inspect | `npm run dev -- drive inspect $LARK_AXI_DRIVE_INSPECT_ARGS --format json` | Returns resource type, title, and canonical token where upstream can inspect the target. | read-only |
 | T24 | Registry mutation safety | Run `npm run dev -- im send --chat-id "$LARK_AXI_TEST_CHAT_ID" --markdown "# test" --dry-run --execute --format json` and `npm run dev -- docs create --title "missing approval" --content "hello" --format json`. | Each fails before invoking a live write and names the approval problem. | no write |
+| T24a | Required flag validation | Run `npm run dev -- drive search --query --format json` and `npm run dev -- im send --chat-id "$LARK_AXI_TEST_CHAT_ID" --markdown --dry-run --format json`. | Each fails before invoking `lark-cli` and names the missing usable required value. | no write |
 | T25 | Raw curated hint | `npm run dev -- --format json raw im +messages-send --chat-id "$LARK_AXI_TEST_CHAT_ID" --text "$LARK_AXI_TEST_MESSAGE" --dry-run` | Delegates to raw upstream dry-run and prints a hint preferring `lark-axi im send` plus the `external-send` risk. | dry-run |
 
 ## Regression Coverage
@@ -83,5 +84,5 @@ After a significant change to command routing, adapters, output rendering, safet
 - Missing-scope errors must extract upstream `error.type`, `error.message`, and `error.hint` without proxy warnings or update envelopes.
 - Every success response must include `status`, `command`, and command metadata; every error response must include `source`, `retryable`, and `fix`.
 - Mutation responses must identify mode, risk, identity, target, intended effect, and a verification-oriented next action.
-- All list commands (calendar agenda, im search, im chats, im chat-search, docs search, drive search, base records, sheets info, task list, contact search, raw) must prepend a count metadata section with `shown`, `total_observed`, and `limit`.
+- All list commands (auth scopes, auth users, doctor, calendar agenda, im search, im chats, im chat-search, docs search, drive search, drive inspect, base records, sheets info, task list, contact search, markdown fetch, raw) must prepend a count metadata section with `shown`, `total_observed`, and `limit`.
 - New curated/generic commands must not be added to this file or the registry without evidence: upstream argument/output fixtures, wrapper tests, safety tests for write-like routes, executable help examples, and documentation/skill updates.

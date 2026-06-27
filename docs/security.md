@@ -7,7 +7,7 @@ Default posture:
 - Never perform login automatically.
 - Never hide current identity state.
 - Require exactly one of `--dry-run` or `--execute` for curated mutations.
-- Validate required mutation inputs before invoking `lark-cli`.
+- Validate registry-required inputs before invoking `lark-cli`, including flags accidentally provided without a value.
 - Keep dependency stderr out of stdout unless `--debug` is requested.
 - Strip `[lark-cli] [WARN]` lines from error output.
 - Extract structured upstream error fields (`type`, `message`, `hint`) from `lark-cli` JSON error responses when available.
@@ -22,14 +22,14 @@ Registry-backed commands are classified before execution:
 
 | Risk | Meaning | Examples |
 | --- | --- | --- |
-| read | Reads remote state or local CLI state. | `auth status`, `docs fetch`, `im search`, `drive search` |
+| read | Reads remote state or local CLI state. | `auth status`, `auth scopes`, `im chats`, `docs search`, `drive inspect`, `contact search` |
 | write | Creates or updates remote state. | `docs create` |
 | destructive | Deletes or irreversibly clears remote state. | Future delete routes after evidence exists. |
 | permission | Changes or requests access to shared resources. | Future permission routes after evidence exists. |
 | external-send | Sends content or invitations to other users. | `im send` |
 | file-system | Reads or writes local files while interacting with Lark/Feishu resources. | Future upload/download routes after evidence exists. |
 
-Write-like risk classes are blocked unless the caller supplies `--dry-run` or `--execute`. Passing both flags is treated as a usage error.
+Write-like risk classes are blocked unless the caller supplies exactly one of `--dry-run` or `--execute`. Passing both flags is treated as a usage error.
 
 Mutation responses identify mode, risk, identity, target, intended effect, and a verification hint. A dry run must not claim that the external side effect happened; an execute response should give the agent a concrete way to verify the result.
 

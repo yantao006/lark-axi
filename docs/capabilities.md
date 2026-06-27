@@ -50,7 +50,7 @@ Registry-backed commands carry a risk class:
 
 | Risk | Examples | Wrapper behavior |
 | --- | --- | --- |
-| read | `docs fetch`, `im search`, `drive search`, `task list` | No mutation approval required. |
+| read | `auth scopes`, `im chats`, `docs search`, `drive inspect`, `contact search` | No mutation approval required; required flags must have non-empty values. |
 | write | `docs create` | Requires `--dry-run` or `--execute`. |
 | destructive | Future delete routes after evidence exists. | Requires `--dry-run` or `--execute` and labels the risk in output/errors. |
 | permission | Future permission routes after evidence exists. | Requires `--dry-run` or `--execute`. |
@@ -68,7 +68,7 @@ Upstream `lark-cli` errors are cleaned before display:
 - `[lark-cli] [WARN]` lines are stripped from stderr.
 - Structured upstream error JSON (`{error: {type, message, hint}}`) is parsed and surfaced as the primary error fields.
 - When no structured error is found, combined stdout/stderr is used as the error message.
-- AXI-level validation errors are surfaced before invoking `lark-cli`.
+- AXI-level validation errors are surfaced before invoking `lark-cli`, including missing or bare required value flags.
 - Every error includes `source`, `retryable`, and `fix` fields so agents can decide whether to correct arguments, authenticate, request scopes, retry, or inspect upstream help.
 
 ## Remaining Raw-First Areas

@@ -41,7 +41,7 @@ New Lark command coverage is incomplete until all applicable evidence lands in t
 | --- | --- |
 | Registry entry | `src/commands/registry.ts` entry with status, risk class, response kind, usage, flags, executable examples, required flags, upstream shortcut when registry-backed, and sensible default fields for list output. |
 | Realistic fixture | A representative upstream argument/output fixture or inline mocked response shaped like current `lark-cli` output, including real identifier forms such as `oc_xxx`, `om_xxx`, `doc_xxx`, `bas_xxx`, `tbl_xxx`, or `sht_xxx` where relevant. |
-| Routing and normalization tests | Vitest coverage proving wrapper arguments route to the intended `lark-cli` shortcut and output normalizes into the expected record/list/mutation envelope without leaking broad upstream envelopes as rows. |
+| Routing and normalization tests | Vitest coverage proving wrapper arguments route to the intended `lark-cli` shortcut, required flags reject missing or bare values before `lark-cli` runs, and output normalizes into the expected record/list/mutation envelope without leaking broad upstream envelopes as rows. |
 | Safety tests | For write-like, destructive, permission, external-send, or file-system commands: tests proving missing target/content and missing or conflicting `--dry-run`/`--execute` fail before the adapter is called. |
 | Help examples | `lark-axi --help` and `lark-axi help <command>` expose executable examples and usable ID-shape hints. |
 | Documentation sync | Update `README.md`, `README.zh.md`, `docs/capabilities.md`, `docs/security.md` when safety or risk changes, and `docs/testing/lark-axi-live-test-cases.md` with offline/read-only/dry-run/execute expectations. |
