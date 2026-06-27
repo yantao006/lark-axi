@@ -273,4 +273,3 @@ docs/
 - `kunchenguid/gh-axi`: Reference implementation wraps official `gh`, ships npm/npx usage and an Agent Skill, and exposes GitHub operations with compact output and structured error handling.
 - `larksuite/cli`: Official Lark/Feishu CLI with 200+ commands, 26 AI Agent Skills, auth/status commands, shortcut/API/raw layers, output formats, pagination, dry-run, and schema introspection.
 - Local machine check: `lark-cli` is installed at `/opt/homebrew/bin/lark-cli`; local version is `1.0.32`; `auth status` reports missing user token and available bot identity.
-
