@@ -8,6 +8,8 @@
 
 [安装](#安装与快速开始) · [Agent 快速开始](#agent-快速开始) · [命令](#命令) · [输出](#输出模型) · [安全](#安全模型) · [开发](#开发)
 
+当前开发应从 `origin/feat/lark-axi-wrapper@4484fd9e6a7a419244c87033fc0217ff6a3b60c5` 继续，不要从旧的本地分支头继续。基线、验证门禁、非破坏试用路径和命令覆盖清单见 [docs/governance.md](docs/governance.md)。
+
 ## 为什么需要 lark-axi？
 
 - **基于官方 CLI**：认证、权限范围、应用配置、Schema 覆盖、分页和平台行为仍由 `lark-cli` 负责。
@@ -124,6 +126,7 @@ lark-cli auth login --recommend
 | Fallback | `raw <lark-cli args...>` |
 
 表外命令默认 raw-first，只有具备证据后才进入 curated/generic：真实上游参数/输出 fixture、wrapper 路由或归一化测试、写类命令安全测试、可执行 help 示例，以及文档和 skill 同步。
+新增公开 wrapper 命令前必须按 [docs/governance.md](docs/governance.md) 的清单补齐证据。
 
 IM ID 说明：
 
@@ -269,6 +272,8 @@ npm run skill:generate
 ```bash
 npm run check
 ```
+
+试用顺序是离线 help/usage 检查、只读 live 检查、dry-run 检查，最后才是在明确批准后对一次性资源执行 `--execute` 写操作。详细命令和批准规则见 [docs/governance.md](docs/governance.md) 与 [docs/testing/lark-axi-live-test-cases.md](docs/testing/lark-axi-live-test-cases.md)。
 
 ## 许可
 

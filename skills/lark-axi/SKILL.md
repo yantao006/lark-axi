@@ -54,6 +54,7 @@ lark-axi
 - Use compact TOON output by default; use `--format json` only when exact machine-readable fields are needed.
 - Use `--full` only after a truncated preview proves the full body is needed.
 - For writes, use `--dry-run` first unless the user has explicitly authorized the exact action.
+- Follow the trial order in `docs/governance.md`: offline help/usage checks, read-only live checks, dry-run checks, then explicitly approved `--execute` writes against disposable resources.
 - After writes, follow the verification hint in `next_actions`.
 - Do not run `lark-cli auth login` automatically; surface the login command and wait for the user.
 - Use uncovered lark-cli operations through `lark-axi raw <lark-cli args...>`.

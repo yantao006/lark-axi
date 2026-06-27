@@ -4,6 +4,7 @@
 
 - Use `npx -y gh-axi` for GitHub operations in this repository.
 - Use `lark-axi` for Lark/Feishu validation in this repository. `lark-cli` may be used as the upstream oracle, but it is not a substitute for testing the wrapper.
+- Continue this wrapper from `origin/feat/lark-axi-wrapper@4484fd9e6a7a419244c87033fc0217ff6a3b60c5` until the release owner selects a newer integration baseline. Do not resume from stale local branch heads such as the previously observed `feat/agent-ergonomic-contracts@53a5f2d`.
 
 ## Command Surface
 
@@ -29,5 +30,6 @@
 ## Verification
 
 - After any significant change to command routing, adapters, output rendering, safety policy, curated command wrappers, generic wrappers, docs, IM, registry coverage, raw fallback behavior, or skill generation, run `npm run check`.
+- Follow `docs/governance.md` for the selected baseline, local verification gate, non-destructive trial path, and command-coverage checklist.
 - For significant behavior changes, also run the applicable live test cases in `docs/testing/lark-axi-live-test-cases.md` against disposable Lark/Feishu resources.
 - Classify live-test failures as wrapper bug, missing scope, missing resource, upstream `lark-cli` behavior, or intentionally unsupported coverage before changing code.

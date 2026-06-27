@@ -75,4 +75,4 @@ Upstream `lark-cli` errors are cleaned before display:
 
 The wrapper still leaves calendar writes, IM reply/message detail/download, docs update/media, drive upload/download/delete/permissions, Base/Sheets writes and schema reads, task writes/search, contact detail, mail, meetings, minutes, notes, wiki, specialized apps, approval, OKR, attendance, event streaming, slides, whiteboard, and generated OpenAPI command groups behind `raw`.
 
-Add curated or generic registry coverage only when the command has evidence: realistic upstream argument/output fixtures, wrapper routing or normalization tests, safety tests for write-like routes, executable help examples, and documentation/skill updates.
+Add curated or generic registry coverage only when the command has evidence: realistic upstream argument/output fixtures, wrapper routing or normalization tests, safety tests for write-like routes, executable help examples, and documentation/skill updates. Use the full checklist in [docs/governance.md](governance.md); if the checklist is incomplete, keep the command raw-first.

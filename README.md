@@ -8,6 +8,8 @@ Agent-facing AXI wrapper around the official Lark/Feishu [`lark-cli`](https://gi
 
 [Install](#installation--quick-start) · [Agent Quick Start](#agent-quick-start) · [Commands](#commands) · [Output](#output-model) · [Safety](#safety-model) · [Development](#development)
 
+Development currently continues from `origin/feat/lark-axi-wrapper@4484fd9e6a7a419244c87033fc0217ff6a3b60c5`, not from older local branch heads. See [docs/governance.md](docs/governance.md) for the baseline, verification gate, non-destructive trial path, and command-coverage checklist.
+
 ## Why lark-axi?
 
 - **Built on the official CLI**: authentication, scopes, app configuration, schema coverage, pagination, and platform behavior remain owned by `lark-cli`.
@@ -138,6 +140,7 @@ Run `lark-axi --help` for the current registry and `lark-axi help <command>` for
 | Fallback | `raw <lark-cli args...>` |
 
 Commands outside this table are raw-first until they have evidence: fixture-backed upstream arguments/output, wrapper tests, safety tests for write-like routes, executable help examples, and documentation/skill updates.
+Use the checklist in [docs/governance.md](docs/governance.md) before adding any command to the public wrapper surface.
 
 IM IDs:
 
@@ -290,6 +293,8 @@ Run the full local check:
 ```bash
 npm run check
 ```
+
+Trial order is offline help/usage checks, read-only live checks, dry-run checks, then explicitly approved `--execute` writes against disposable resources. The detailed commands and approval rules are in [docs/governance.md](docs/governance.md) and [docs/testing/lark-axi-live-test-cases.md](docs/testing/lark-axi-live-test-cases.md).
 
 `lark-cli` remains the source of truth for auth, scopes, API coverage, pagination, schema introspection, and Feishu platform behavior. `lark-axi` is the agent interface layer on top.
 

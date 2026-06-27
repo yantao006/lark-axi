@@ -8,6 +8,8 @@ Run local checks before any live call:
 npm run check
 ```
 
+The broader baseline and trial rules live in [docs/governance.md](../governance.md). The required order is offline help/usage checks, read-only live checks, dry-run checks, then explicitly approved `--execute` writes against disposable resources.
+
 ## Test Resources
 
 Set these variables before running live cases. Use disposable resources only.
@@ -39,8 +41,9 @@ After a significant change to command routing, adapters, output rendering, safet
 
 1. Run `npm run check`.
 2. Run every non-destructive live case that has resources available.
-3. Run write cases only after the user approves the exact command, target, identity, and text/content.
-4. Record failures as one of: wrapper bug, missing scope, missing resource, upstream `lark-cli` behavior, or intentional unsupported coverage.
+3. Run dry-run cases before any write case.
+4. Run write cases only after the user approves the exact command, target, identity, and text/content, and only against disposable resources.
+5. Record failures as one of: wrapper bug, missing scope, missing resource, upstream `lark-cli` behavior, or intentional unsupported coverage.
 
 ## Cases
 
