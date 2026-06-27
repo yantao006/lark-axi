@@ -133,7 +133,7 @@ Run `lark-axi --help` for the current registry and `lark-axi help <command>` for
 | Runtime and auth | `lark-axi`, `auth status` |
 | Calendar | `calendar agenda` |
 | IM | `im search`, `im send` |
-| Docs and Markdown | `docs fetch`, `docs create`, `markdown fetch` |
+| Docs | `docs fetch`, `docs create` |
 | Drive | `drive search` |
 | Base and Sheets | `base records`, `sheets info` |
 | Tasks | `task list` |

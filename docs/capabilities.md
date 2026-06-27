@@ -20,7 +20,7 @@
 | calendar | `calendar agenda` |
 | im | `im search`, `im send` |
 | docs | `docs fetch`, `docs create` |
-| drive / markdown | `drive search`, `markdown fetch` |
+| drive | `drive search` |
 | base | `base records` |
 | sheets | `sheets info` |
 | task | `task list` |
@@ -72,6 +72,6 @@ Upstream `lark-cli` errors are cleaned before display:
 
 ## Remaining Raw-First Areas
 
-The wrapper still leaves auth scope/user listing, doctor health checks, calendar writes, IM chat lookup/reply/message detail/download, docs search/update/media, drive inspect/upload/download/delete/permissions, Base/Sheets writes and schema reads, task writes/search, contact search/detail, mail, meetings, minutes, notes, wiki, specialized apps, approval, OKR, attendance, event streaming, slides, whiteboard, and generated OpenAPI command groups behind `raw`.
+The wrapper still leaves auth scope/user listing, doctor health checks, calendar writes, IM chat lookup/reply/message detail/download, docs search/update/media, markdown fetch, drive inspect/upload/download/delete/permissions, Base/Sheets writes and schema reads, task writes/search, contact search/detail, mail, meetings, minutes, notes, wiki, specialized apps, approval, OKR, attendance, event streaming, slides, whiteboard, and generated OpenAPI command groups behind `raw`.
 
 Add curated or generic registry coverage only when the command has evidence: realistic upstream argument/output fixtures, wrapper routing or normalization tests, safety tests for write-like routes, executable help examples, and documentation/skill updates. Use the full checklist in [docs/governance.md](governance.md); if the checklist is incomplete, keep the command raw-first.

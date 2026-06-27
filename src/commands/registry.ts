@@ -135,17 +135,6 @@ const COMMANDS: CommandDefinition[] = [
     empty: "0 tasks found"
   },
   {
-    key: "markdown fetch",
-    description: "Fetch a Lark document as Markdown",
-    usage: "lark-axi markdown fetch [lark-cli flags]",
-    flags: "Forwards markdown fetch flags to lark-cli",
-    examples: "lark-axi markdown fetch --url https://example.feishu.cn/docx/xxx",
-    status: "generic",
-    risk: "read",
-    upstream: { args: ["markdown", "+fetch"], supportsFormat: false },
-    empty: "0 markdown rows"
-  },
-  {
     key: "raw",
     description: "Pass through to lark-cli for commands not yet wrapped",
     usage: "lark-axi raw <lark-cli args...>",

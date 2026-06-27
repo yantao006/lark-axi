@@ -59,8 +59,7 @@ After a significant change to command routing, adapters, output rendering, safet
 | T8 | Base records | `npm run dev -- base records $LARK_AXI_BASE_ARGS --limit 2 --format json` | Returns normalized records or a classified missing-resource/error. | read-only |
 | T9 | Sheets info | `npm run dev -- sheets info $LARK_AXI_SHEETS_ARGS --format json` | Returns spreadsheet metadata or a classified missing-resource/error. | read-only |
 | T10 | Task list | `npm run dev -- task list --limit 3 --format json` | Returns assigned tasks or explicit empty state. | read-only |
-| T11 | Markdown fetch | `npm run dev -- markdown fetch $LARK_AXI_MARKDOWN_ARGS --format json` | Returns markdown content/metadata or a classified missing-resource/error. | read-only |
-| T12 | Raw fallback | `npm run dev -- raw im +messages-mget --message-ids "$LARK_AXI_TEST_MESSAGE_ID" --as bot --format json` | Delegates to `lark-cli`, applies `--limit` (default 20) slicing, prepends count metadata (`shown`, `total_observed`, `limit`), returns the test message, and suggests curated commands when applicable. | read-only |
+| T11 | Raw fallback | `npm run dev -- raw im +messages-mget --message-ids "$LARK_AXI_TEST_MESSAGE_ID" --as bot --format json` | Delegates to `lark-cli`, applies `--limit` (default 20) slicing, prepends count metadata (`shown`, `total_observed`, `limit`), returns the test message, and suggests curated commands when applicable. | read-only |
 | T12a | Per-command help | `npm run dev -- im search --help` and `npm run dev -- help docs fetch` | Shows command-specific usage, flags, and examples for the requested command; does not show the global command list. | none |
 | T13 | Safety block | `npm run dev -- im send --chat-id "$LARK_AXI_TEST_CHAT_ID" --text "$LARK_AXI_TEST_MESSAGE" --as bot --format json` | Fails before invoking `lark-cli` with `status:error`, `source:wrapper`, and `error.fix.missing` naming `dry-run` and `execute`. | no write |
 | T14 | IM dry-run | `npm run dev -- im send --chat-id "$LARK_AXI_TEST_CHAT_ID" --text "$LARK_AXI_TEST_MESSAGE" --dry-run --as bot --format json` | Shows mode, risk, identity, target, intended effect, and planned request; does not send a message. | dry-run |
@@ -83,5 +82,5 @@ After a significant change to command routing, adapters, output rendering, safet
 - Missing-scope errors must extract upstream `error.type`, `error.message`, and `error.hint` without proxy warnings or update envelopes.
 - Every success response must include `status`, `command`, and command metadata; every error response must include `source`, `retryable`, and `fix`.
 - Mutation responses must identify mode, risk, identity, target, intended effect, and a verification-oriented next action.
-- All list commands (calendar agenda, im search, drive search, base records, sheets info, task list, markdown fetch, raw) must prepend a count metadata section with `shown`, `total_observed`, and `limit`.
+- All list commands (calendar agenda, im search, drive search, base records, sheets info, task list, raw) must prepend a count metadata section with `shown`, `total_observed`, and `limit`.
 - New curated/generic commands must not be added to this file or the registry without evidence: upstream argument/output fixtures, wrapper tests, safety tests for write-like routes, executable help examples, and documentation/skill updates.

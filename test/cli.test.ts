@@ -161,6 +161,19 @@ Flags:
     expect(runner.calls).toEqual([]);
   });
 
+  it("keeps markdown fetch raw-first until command coverage is complete", async () => {
+    const runner = new MockRunner();
+
+    const help = await runCli(["--help"], { runner });
+    const result = await runCli(["markdown", "fetch", "--url", "https://example.feishu.cn/docx/xxx"], { runner });
+
+    expect(help.stdout).not.toContain("markdown fetch");
+    expect(result.code).toBe(2);
+    expect(result.stdout).toContain("Unknown command 'markdown fetch'");
+    expect(result.stdout).toContain("lark-axi raw");
+    expect(runner.calls).toEqual([]);
+  });
+
   it("routes richer IM sends through the registry-backed mutation path", async () => {
     const runner = new MockRunner();
     runner.respond(["im", "+messages-send", "--chat-id", "oc_x", "--markdown", "# hello", "--dry-run", "--format", "json"], {

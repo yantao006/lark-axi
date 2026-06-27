@@ -1,6 +1,6 @@
 ---
 name: lark-axi
-description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, docs, drive, base, sheets, markdown, tasks, auth status, and raw lark-cli fallback.
+description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, docs, drive, base, sheets, tasks, auth status, and raw lark-cli fallback.
 ---
 
 # Lark AXI
@@ -33,7 +33,6 @@ lark-axi
 - List Base records: `lark-axi base records`
 - Show spreadsheet workbook metadata: `lark-axi sheets info`
 - List current user's tasks: `lark-axi task list`
-- Fetch a Lark document as Markdown: `lark-axi markdown fetch`
 - Pass through to lark-cli for commands not yet wrapped: `lark-axi raw`
 
 ## Rules

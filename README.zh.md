@@ -119,7 +119,7 @@ lark-cli auth login --recommend
 | 运行时与认证 | `lark-axi`, `auth status` |
 | 日历 | `calendar agenda` |
 | 即时通讯 | `im search`, `im send` |
-| 文档与 Markdown | `docs fetch`, `docs create`, `markdown fetch` |
+| 文档 | `docs fetch`, `docs create` |
 | 云盘 | `drive search` |
 | 多维表格与电子表格 | `base records`, `sheets info` |
 | 任务 | `task list` |
