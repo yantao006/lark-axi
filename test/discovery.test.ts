@@ -29,7 +29,7 @@ Flags:
 `);
 
     expect(commands).toEqual([
-      { domain: "im", command: "+chat-list", description: "List chats", status: "generic" },
+      { domain: "im", command: "+chat-list", description: "List chats", status: "raw-only" },
       { domain: "im", command: "+messages-send", description: "Send message", status: "curated" },
       { domain: "im", command: "+unknown-new", description: "New upstream shortcut", status: "raw-only" },
       { domain: "im", command: "messages", description: "messages operations", status: "pass-through" }

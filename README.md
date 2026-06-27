@@ -130,13 +130,13 @@ Run `lark-axi --help` for the current registry and `lark-axi help <command>` for
 
 | Area | Commands |
 | --- | --- |
-| Runtime and auth | `lark-axi`, `auth status`, `auth scopes`, `auth users`, `doctor` |
+| Runtime and auth | `lark-axi`, `auth status` |
 | Calendar | `calendar agenda` |
-| IM | `im search`, `im chats`, `im chat-search`, `im send` |
-| Docs and Markdown | `docs fetch`, `docs search`, `docs create`, `markdown fetch` |
-| Drive | `drive search`, `drive inspect` |
+| IM | `im search`, `im send` |
+| Docs and Markdown | `docs fetch`, `docs create`, `markdown fetch` |
+| Drive | `drive search` |
 | Base and Sheets | `base records`, `sheets info` |
-| Tasks and People | `task list`, `contact search` |
+| Tasks | `task list` |
 | Fallback | `raw <lark-cli args...>` |
 
 Commands outside this table are raw-first until they have evidence: fixture-backed upstream arguments/output, wrapper tests, safety tests for write-like routes, executable help examples, and documentation/skill updates.
@@ -147,7 +147,7 @@ IM IDs:
 - `chat_id` identifies a group or P2P conversation and starts with `oc_`.
 - `message_id` starts with `om_`; sender user IDs start with `ou_`; app IDs start with `cli_`.
 - Use `lark-axi im search --query "hello"` to see matching messages with their `chat_id`.
-- Use `lark-axi im chat-search --query "project"` or `lark-axi im chats --types group,p2p` to look up chats directly.
+- Use `lark-axi raw im +chat-search --query "project"` or `lark-axi raw im +chat-list --types group,p2p` to look up chats directly.
 
 Global flags:
 

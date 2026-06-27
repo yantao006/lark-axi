@@ -116,13 +116,13 @@ lark-cli auth login --recommend
 
 | 范围 | 命令 |
 | --- | --- |
-| 运行时与认证 | `lark-axi`, `auth status`, `auth scopes`, `auth users`, `doctor` |
+| 运行时与认证 | `lark-axi`, `auth status` |
 | 日历 | `calendar agenda` |
-| 即时通讯 | `im search`, `im chats`, `im chat-search`, `im send` |
-| 文档与 Markdown | `docs fetch`, `docs search`, `docs create`, `markdown fetch` |
-| 云盘 | `drive search`, `drive inspect` |
+| 即时通讯 | `im search`, `im send` |
+| 文档与 Markdown | `docs fetch`, `docs create`, `markdown fetch` |
+| 云盘 | `drive search` |
 | 多维表格与电子表格 | `base records`, `sheets info` |
-| 任务与联系人 | `task list`, `contact search` |
+| 任务 | `task list` |
 | Fallback | `raw <lark-cli args...>` |
 
 表外命令默认 raw-first，只有具备证据后才进入 curated/generic：真实上游参数/输出 fixture、wrapper 路由或归一化测试、写类命令安全测试、可执行 help 示例，以及文档和 skill 同步。
@@ -133,7 +133,7 @@ IM ID 说明：
 - `chat_id` 表示群聊或单聊会话，前缀是 `oc_`。
 - `message_id` 前缀是 `om_`；发送者用户 ID 前缀通常是 `ou_`；应用 ID 前缀是 `cli_`。
 - 用 `lark-axi im search --query "hello"` 可以在匹配消息里看到 `chat_id`。
-- 用 `lark-axi im chat-search --query "project"` 或 `lark-axi im chats --types group,p2p` 可以直接查找会话。
+- 用 `lark-axi raw im +chat-search --query "project"` 或 `lark-axi raw im +chat-list --types group,p2p` 可以直接查找会话。
 
 全局参数：
 

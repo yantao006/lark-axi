@@ -27,7 +27,7 @@ describe("lark-axi cli", () => {
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("--chat-id <oc_xxx>");
     expect(result.stdout).toContain("lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run");
-    expect(result.stdout).toContain("im chat-search --query \"project\"");
+    expect(result.stdout).toContain("lark-axi raw im +chat-search --query \"project\"");
   });
 
   it("keeps registry metadata complete for displayed commands", () => {
@@ -150,28 +150,15 @@ Flags:
     ]);
   });
 
-  it("routes registry-backed read commands with compact defaults", async () => {
+  it("keeps incomplete command coverage raw-first", async () => {
     const runner = new MockRunner();
-    runner.respond(["contact", "+search-user", "--query", "Alice", "--format", "json"], {
-      data: {
-        items: [
-          {
-            open_id: "ou_x",
-            name: "Alice",
-            email: "alice@example.com",
-            department: "Product",
-            extra: "large"
-          }
-        ]
-      }
-    });
 
     const result = await runCli(["contact", "search", "--query", "Alice"], { runner });
 
-    expect(result.code).toBe(0);
-    expect(result.stdout).toContain("contact_search[1]{open_id,name,email,department}:");
-    expect(result.stdout).toContain("ou_x,Alice,alice@example.com,Product");
-    expect(result.stdout).not.toContain("large");
+    expect(result.code).toBe(2);
+    expect(result.stdout).toContain("Unknown command 'contact search'");
+    expect(result.stdout).toContain("lark-axi raw");
+    expect(runner.calls).toEqual([]);
   });
 
   it("routes richer IM sends through the registry-backed mutation path", async () => {
@@ -244,6 +231,18 @@ Flags:
 
     expect(result.code).toBe(2);
     expect(result.stdout).toContain("im send requires --chat-id or --user-id");
+    expect(runner.calls).toEqual([]);
+  });
+
+  it("rejects bare required value flags before lark-cli", async () => {
+    const runner = new MockRunner();
+    const readResult = await runCli(["drive", "search", "--query"], { runner });
+    const sendResult = await runCli(["im", "send", "--chat-id", "oc_x", "--markdown", "--dry-run"], { runner });
+
+    expect(readResult.code).toBe(2);
+    expect(readResult.stdout).toContain("drive search requires --query");
+    expect(sendResult.code).toBe(2);
+    expect(sendResult.stdout).toContain("im send requires --text or --markdown or --content or --image or --file or --video or --audio");
     expect(runner.calls).toEqual([]);
   });
 

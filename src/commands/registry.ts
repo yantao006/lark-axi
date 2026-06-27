@@ -33,39 +33,6 @@ const COMMANDS: CommandDefinition[] = [
     risk: "read"
   },
   {
-    key: "auth scopes",
-    description: "List scopes enabled for the current app",
-    usage: "lark-axi auth scopes [--format json]",
-    flags: "--format json; --profile <name>",
-    examples: "lark-axi auth scopes",
-    status: "generic",
-    risk: "read",
-    upstream: { args: ["auth", "scopes"], supportsFormat: true },
-    empty: "0 auth scopes found"
-  },
-  {
-    key: "auth users",
-    description: "List logged-in users",
-    usage: "lark-axi auth users [--format json]",
-    flags: "--format json; --profile <name>",
-    examples: "lark-axi auth users",
-    status: "generic",
-    risk: "read",
-    upstream: { args: ["auth", "list"], supportsFormat: true },
-    empty: "0 logged-in users found"
-  },
-  {
-    key: "doctor",
-    description: "Run local lark-cli health checks",
-    usage: "lark-axi doctor [--format json]",
-    flags: "--format json; --profile <name>",
-    examples: "lark-axi doctor",
-    status: "generic",
-    risk: "read",
-    upstream: { args: ["doctor"], supportsFormat: true },
-    empty: "0 doctor checks returned"
-  },
-  {
     key: "calendar agenda",
     description: "List upcoming calendar events",
     usage: "lark-axi calendar agenda [--limit N] [--fields a,b,c]",
@@ -89,37 +56,12 @@ const COMMANDS: CommandDefinition[] = [
     empty: "0 messages found"
   },
   {
-    key: "im chats",
-    description: "List visible chats",
-    usage: "lark-axi im chats [lark-cli flags] [--limit N]",
-    flags: "--types=p2p,group; --limit N; --fields a,b,c",
-    examples: "lark-axi im chats --types group,p2p",
-    status: "generic",
-    risk: "read",
-    upstream: { args: ["im", "+chat-list"], supportsFormat: true },
-    defaultFields: ["chat_id", "name", "chat_mode", "owner_id"],
-    empty: "0 chats found"
-  },
-  {
-    key: "im chat-search",
-    description: "Search visible group chats",
-    usage: "lark-axi im chat-search --query <text> [--limit N]",
-    flags: "--query <text> required; --limit N; --fields a,b,c",
-    examples: "lark-axi im chat-search --query \"project\"",
-    status: "generic",
-    risk: "read",
-    requiredFlags: ["query"],
-    upstream: { args: ["im", "+chat-search"], supportsFormat: true },
-    defaultFields: ["chat_id", "name", "description", "owner_id"],
-    empty: "0 chats found"
-  },
-  {
     key: "im send",
     description: "Preview or send a text, markdown, media, or raw content message",
     usage: "lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run|--execute",
     flags: "--chat-id or --user-id required; one of --text, --markdown, --content, --image, --file, --video, or --audio required; exactly one of --dry-run or --execute",
     examples:
-      "lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run\nlark-axi im send --chat-id oc_xxx --markdown \"# hello\" --dry-run\nHint: find chat IDs with `lark-axi im chats` or `lark-axi im chat-search --query \"project\"`",
+      "lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run\nlark-axi im send --chat-id oc_xxx --markdown \"# hello\" --dry-run\nHint: use `lark-axi raw im +chat-list --types group,p2p` or `lark-axi raw im +chat-search --query \"project\"` to find chat IDs.",
     status: "curated",
     risk: "external-send",
     requiredFlags: ["chat-id|user-id", "text|markdown|content|image|file|video|audio"],
@@ -134,19 +76,6 @@ const COMMANDS: CommandDefinition[] = [
     status: "curated",
     risk: "read",
     requiredFlags: ["token"]
-  },
-  {
-    key: "docs search",
-    description: "Search docs through lark-cli",
-    usage: "lark-axi docs search --query <text> [--limit N]",
-    flags: "--query <text> required; --limit N; --fields a,b,c",
-    examples: "lark-axi docs search --query \"roadmap\"",
-    status: "generic",
-    risk: "read",
-    requiredFlags: ["query"],
-    upstream: { args: ["docs", "+search"], supportsFormat: true },
-    defaultFields: ["title", "url", "doc_token", "owner"],
-    empty: "0 docs found"
   },
   {
     key: "docs create",
@@ -170,19 +99,6 @@ const COMMANDS: CommandDefinition[] = [
     upstream: { args: ["drive", "+search"], supportsFormat: true },
     defaultFields: ["title", "type", "url", "token", "owner"],
     empty: "0 drive files found"
-  },
-  {
-    key: "drive inspect",
-    description: "Inspect Drive file metadata",
-    usage: "lark-axi drive inspect --url <url>|--token <token>",
-    flags: "--url, --token, --file-token, or --folder-token; --fields a,b,c",
-    examples: "lark-axi drive inspect --url https://example.feishu.cn/docx/xxx",
-    status: "generic",
-    risk: "read",
-    requiredFlags: ["url|token|file-token|folder-token"],
-    upstream: { args: ["drive", "+inspect"], supportsFormat: true },
-    defaultFields: ["title", "type", "token", "url", "owner"],
-    empty: "0 drive metadata rows"
   },
   {
     key: "base records",
@@ -217,19 +133,6 @@ const COMMANDS: CommandDefinition[] = [
     upstream: { args: ["task", "+get-my-tasks"], supportsFormat: true },
     defaultFields: ["guid", "summary", "completed_at", "due"],
     empty: "0 tasks found"
-  },
-  {
-    key: "contact search",
-    description: "Search users by name or email",
-    usage: "lark-axi contact search --query <text> [--limit N]",
-    flags: "--query <text> required; --limit N; --fields a,b,c",
-    examples: "lark-axi contact search --query \"Alice\"",
-    status: "generic",
-    risk: "read",
-    requiredFlags: ["query"],
-    upstream: { args: ["contact", "+search-user"], supportsFormat: true },
-    defaultFields: ["open_id", "name", "email", "department"],
-    empty: "0 contacts found"
   },
   {
     key: "markdown fetch",

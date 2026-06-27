@@ -10,7 +10,7 @@ const COMMAND_GUIDANCE = displayCommands()
 
 export const SKILL_CONTENT = `---
 name: lark-axi
-description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, contacts, docs, drive, base, sheets, markdown, tasks, auth status, and raw lark-cli fallback.
+description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, docs, drive, base, sheets, markdown, tasks, auth status, and raw lark-cli fallback.
 ---
 
 # Lark AXI

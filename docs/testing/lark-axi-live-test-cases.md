@@ -70,9 +70,9 @@ After a significant change to command routing, adapters, output rendering, safet
 | T18 | Output controls | Repeat T5/T6 with `--fields`, `--limit`, and `--full`. | Output flags change shape or truncation without breaking command behavior. | read-only |
 | T19 | Identity routing | Repeat representative reads with `--as user` and `--as bot` where upstream supports both. | Identity is forwarded and differences are visible in output or classified errors. | read-only |
 | T20 | Error normalization | Use an invalid doc token and invalid chat id. | Returns stable AXI errors with `source`, `retryable`, and `fix` fields; no stack traces unless `--debug` is set; should not include unparsed proxy warnings or full upstream envelopes as the primary message. | read-only |
-| T21 | Contact search | `npm run dev -- contact search --query "$LARK_AXI_CONTACT_QUERY" --limit 2 --format json` | Returns compact user rows or a classified missing-scope/resource error. | read-only |
-| T22 | IM chat lookup | `npm run dev -- im chat-search --query "$LARK_AXI_IM_QUERY" --limit 2 --format json` | Returns compact chat rows with usable chat IDs or a classified empty/permission state. | read-only |
-| T23 | Drive inspect | `npm run dev -- drive inspect $LARK_AXI_DRIVE_INSPECT_ARGS --format json` | Returns resource type, title, and canonical token where upstream can inspect the target. | read-only |
+| T21 | Raw contact search | `npm run dev -- raw contact +search-user --query "$LARK_AXI_CONTACT_QUERY" --limit 2 --format json` | Delegates through raw fallback and returns user rows or a classified missing-scope/resource error. | read-only |
+| T22 | Raw IM chat lookup | `npm run dev -- raw im +chat-search --query "$LARK_AXI_IM_QUERY" --limit 2 --format json` | Delegates through raw fallback and returns chat rows with usable chat IDs or a classified empty/permission state. | read-only |
+| T23 | Raw Drive inspect | `npm run dev -- raw drive +inspect $LARK_AXI_DRIVE_INSPECT_ARGS --format json` | Delegates through raw fallback and returns resource type, title, and canonical token where upstream can inspect the target. | read-only |
 | T24 | Registry mutation safety | Run `npm run dev -- im send --chat-id "$LARK_AXI_TEST_CHAT_ID" --markdown "# test" --dry-run --execute --format json` and `npm run dev -- docs create --title "missing approval" --content "hello" --format json`. | Each fails before invoking a live write and names the approval problem. | no write |
 | T25 | Raw curated hint | `npm run dev -- --format json raw im +messages-send --chat-id "$LARK_AXI_TEST_CHAT_ID" --text "$LARK_AXI_TEST_MESSAGE" --dry-run` | Delegates to raw upstream dry-run and prints a hint preferring `lark-axi im send` plus the `external-send` risk. | dry-run |
 
@@ -83,5 +83,5 @@ After a significant change to command routing, adapters, output rendering, safet
 - Missing-scope errors must extract upstream `error.type`, `error.message`, and `error.hint` without proxy warnings or update envelopes.
 - Every success response must include `status`, `command`, and command metadata; every error response must include `source`, `retryable`, and `fix`.
 - Mutation responses must identify mode, risk, identity, target, intended effect, and a verification-oriented next action.
-- All list commands (calendar agenda, im search, im chats, im chat-search, docs search, drive search, base records, sheets info, task list, contact search, raw) must prepend a count metadata section with `shown`, `total_observed`, and `limit`.
+- All list commands (calendar agenda, im search, drive search, base records, sheets info, task list, markdown fetch, raw) must prepend a count metadata section with `shown`, `total_observed`, and `limit`.
 - New curated/generic commands must not be added to this file or the registry without evidence: upstream argument/output fixtures, wrapper tests, safety tests for write-like routes, executable help examples, and documentation/skill updates.
