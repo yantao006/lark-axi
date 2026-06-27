@@ -1,6 +1,6 @@
 ---
 name: lark-axi
-description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, docs, drive, base, sheets, tasks, auth status, and raw lark-cli fallback.
+description: Use lark-axi for Lark/Feishu operations from agent shell sessions: calendar, messages, contacts, docs, drive, base, sheets, markdown, tasks, auth status, and raw lark-cli fallback.
 ---
 
 # Lark AXI
@@ -24,22 +24,30 @@ lark-axi
 ## When To Use
 
 - Show lark-cli auth state: `lark-axi auth status`
+- List scopes enabled for the current app: `lark-axi auth scopes`
+- List logged-in users: `lark-axi auth users`
+- Run local lark-cli health checks: `lark-axi doctor`
 - List upcoming calendar events: `lark-axi calendar agenda`
 - Search messages: `lark-axi im search`
+- List visible chats: `lark-axi im chats`
+- Search visible group chats: `lark-axi im chat-search`
 - Preview or send a text, markdown, media, or raw content message: `lark-axi im send`
 - Fetch a document preview: `lark-axi docs fetch`
+- Search docs through lark-cli: `lark-axi docs search`
 - Preview or create a document: `lark-axi docs create`
 - Search Drive files: `lark-axi drive search`
+- Inspect Drive file metadata: `lark-axi drive inspect`
 - List Base records: `lark-axi base records`
 - Show spreadsheet workbook metadata: `lark-axi sheets info`
 - List current user's tasks: `lark-axi task list`
+- Search users by name or email: `lark-axi contact search`
+- Fetch a Lark document as Markdown: `lark-axi markdown fetch`
 - Pass through to lark-cli for commands not yet wrapped: `lark-axi raw`
 
 ## Rules
 
 - Prefer curated `lark-axi` commands before `raw`; curated commands return smaller agent-oriented output.
 - Use `lark-axi help <command>` or `lark-axi <command> --help` before using a command whose flags are unclear.
-- For `im send`, provide either `--chat-id oc_xxx` or `--user-id <user_id>` and exactly one content flag: `--text`, `--markdown`, `--content`, `--image`, `--file`, `--video`, or `--audio`.
 - Treat every response as structured: read `status`, `command`, metadata, sections, and `next_actions`.
 - For failures, read `error.source`, `error.retryable`, and `error.fix` before deciding whether to correct arguments, authenticate, request scopes, retry, or inspect upstream help.
 - Read the count metadata on list commands: `shown`, `total_observed`, and `limit` tell you whether the compact response was capped.

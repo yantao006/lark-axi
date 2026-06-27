@@ -31,7 +31,7 @@ Current local context:
 - R1. Verify `lark-axi` can build and pass local test suites before any live calls.
 - R2. Verify the wrapper detects `lark-cli`, version, auth state, capability inventory, and update hints.
 - R3. Exercise every currently exposed curated command against real Lark/Feishu state where safe.
-- R4. Exercise generic read pass-through commands for Drive, Base, Sheets, and Task when test resources exist; exercise Markdown only through raw fallback until wrapper coverage has evidence.
+- R4. Exercise generic read pass-through commands for Drive, Base, Sheets, Task, and Markdown when test resources exist.
 - R5. Verify mutation safety gates block writes without `--dry-run` or `--execute`.
 - R6. Verify dry-run mutations show the intended request without creating external side effects.
 - R7. Execute at most two approved write operations against disposable resources: one test IM message and one test document creation.
@@ -63,7 +63,7 @@ Current local context:
 | T8 | Base records | `lark-axi base records <test args>` | Rows from a disposable Base table | read-only |
 | T9 | Sheets info | `lark-axi sheets info <test args>` | Spreadsheet metadata normalized by generic read | read-only |
 | T10 | Task list | `lark-axi task list` | Assigned tasks or explicit empty state | read-only |
-| T11 | Markdown raw fetch | `lark-axi raw markdown +fetch <test args>` | Raw fallback returns markdown content or a classified upstream error | read-only |
+| T11 | Markdown fetch | `lark-axi markdown fetch <test args>` | Markdown content or raw wrapper output | read-only |
 | T12 | Raw fallback | `lark-axi raw api GET /open-apis/calendar/v4/calendars` | Raw rows with curated-command hint | read-only |
 | T13 | Safety block | `lark-axi im send --chat-id <oc_xxx> --text <text>` | Usage error requiring `--dry-run` or `--execute` | no write |
 | T14 | IM dry-run | `lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run` | Planned request, no message sent | dry-run |
@@ -105,7 +105,7 @@ lark-cli auth login --recommend
 - A Base app token, table ID, and a small table with non-sensitive records.
 - A spreadsheet token for `sheets info`.
 - A task assigned to the logged-in user, or permission to observe an empty task state.
-- A markdown/cloud-doc token if raw Markdown fetch should be covered.
+- A markdown/cloud-doc token if `markdown fetch` should be covered.
 
 ### Do Not Provide in Chat
 
@@ -148,7 +148,7 @@ lark-cli auth login --recommend
 - **Goal:** Validate pass-through wrappers for domains that are not yet curated.
 - **Requirements:** R4, R8.
 - **Files:** `src/commands/generic.ts`, `src/commands/raw.ts`, `src/commands/common.ts`.
-- **Approach:** Run Drive search, Base records, Sheets info, Task list, raw Markdown fetch, and one raw API call when matching test resources exist.
+- **Approach:** Run Drive search, Base records, Sheets info, Task list, Markdown fetch, and one raw API call when matching test resources exist.
 - **Test scenarios:** Extra flags forward correctly; `--profile`, `--as`, `--fields`, and `--limit` behave consistently; unsupported arguments fail as upstream errors with wrapper normalization.
 - **Verification:** Each generic command either returns normalized rows or a clearly classified missing-scope/resource error.
 
