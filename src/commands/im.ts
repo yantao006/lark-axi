@@ -21,12 +21,27 @@ export async function imSearch(adapter: LarkCliAdapter, query: string | undefine
 }
 
 export async function imSend(adapter: LarkCliAdapter, args: { chatId?: string; text?: string; execute: boolean; dryRun: boolean }, options: GlobalOptions): Promise<RenderDocument> {
-  if (!args.chatId) throw new UsageError("im send requires --chat-id", "Example: lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run");
-  if (!args.text) throw new UsageError("im send requires --text", "Example: lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run");
-  const safetyArgs = requireMutationApproval({ command: "im send", execute: args.execute, dryRun: args.dryRun });
+  if (!args.chatId) throw new UsageError("im send requires --chat-id", "Example: lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run", ["chat-id"]);
+  if (!args.text) throw new UsageError("im send requires --text", "Example: lark-axi im send --chat-id oc_xxx --text \"hello\" --dry-run", ["text"]);
+  const safetyArgs = requireMutationApproval({ command: "im send", execute: args.execute, dryRun: args.dryRun, risk: "external-send" });
   const value = await adapter.json(withForwardedGlobals(["im", "+messages-send", "--chat-id", args.chatId, "--text", args.text, ...safetyArgs], options));
+  const mode = args.dryRun ? "dry-run" : "execute";
   return {
-    sections: [{ name: args.dryRun ? "dry_run" : "message", record: asRows(value)[0] ?? { ok: true } }]
+    metadata: { mode, risk: "external-send" },
+    sections: [{
+      name: args.dryRun ? "dry_run" : "message",
+      record: {
+        mode,
+        risk: "external-send",
+        identity: options.as ?? "auto",
+        target: args.chatId,
+        intended_effect: args.dryRun ? "preview message send without sending" : "send message to chat",
+        ...(asRows(value)[0] ?? { ok: true })
+      }
+    }],
+    nextActions: args.dryRun
+      ? ["Re-run with `--execute` only after the exact chat and message are approved."]
+      : ["Verify the message in the target chat or fetch it with a read command when available."]
   };
 }
 

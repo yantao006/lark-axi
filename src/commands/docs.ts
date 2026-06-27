@@ -28,12 +28,27 @@ export async function docsFetch(adapter: LarkCliAdapter, token: string | undefin
 }
 
 export async function docsCreate(adapter: LarkCliAdapter, args: { title?: string; content?: string; execute: boolean; dryRun: boolean }, options: GlobalOptions): Promise<RenderDocument> {
-  if (!args.title) throw new UsageError("docs create requires --title", "Example: lark-axi docs create --title \"Weekly\" --content \"...\" --dry-run");
-  if (!args.content) throw new UsageError("docs create requires --content", "Example: lark-axi docs create --title \"Weekly\" --content \"...\" --dry-run");
+  if (!args.title) throw new UsageError("docs create requires --title", "Example: lark-axi docs create --title \"Weekly\" --content \"...\" --dry-run", ["title"]);
+  if (!args.content) throw new UsageError("docs create requires --content", "Example: lark-axi docs create --title \"Weekly\" --content \"...\" --dry-run", ["content"]);
   const safetyArgs = requireMutationApproval({ command: "docs create", execute: args.execute, dryRun: args.dryRun });
   const value = await adapter.json(withForwardedGlobals(["docs", "+create", "--api-version", "v2", "--title", args.title, "--content", args.content, ...safetyArgs], options));
+  const mode = args.dryRun ? "dry-run" : "execute";
   return {
-    sections: [{ name: args.dryRun ? "dry_run" : "doc", record: asRows(value)[0] ?? { ok: true } }]
+    metadata: { mode, risk: "write" },
+    sections: [{
+      name: args.dryRun ? "dry_run" : "doc",
+      record: {
+        mode,
+        risk: "write",
+        identity: options.as ?? "auto",
+        target: args.title,
+        intended_effect: args.dryRun ? "preview document creation without creating" : "create document",
+        ...(asRows(value)[0] ?? { ok: true })
+      }
+    }],
+    nextActions: args.dryRun
+      ? ["Re-run with `--execute` only after the title and content are approved."]
+      : ["Fetch the returned document token or URL to verify the created document."]
   };
 }
 

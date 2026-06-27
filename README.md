@@ -8,11 +8,15 @@ Agent-facing AXI wrapper around the official Lark/Feishu [`lark-cli`](https://gi
 
 [Install](#installation--quick-start) · [Agent Quick Start](#agent-quick-start) · [Commands](#commands) · [Output](#output-model) · [Safety](#safety-model) · [Development](#development)
 
+Development currently continues from `origin/feat/lark-axi-wrapper@4484fd9e6a7a419244c87033fc0217ff6a3b60c5`, not from older local branch heads. See [docs/governance.md](docs/governance.md) for the baseline, verification gate, non-destructive trial path, and command-coverage checklist.
+
 ## Why lark-axi?
 
 - **Built on the official CLI**: authentication, scopes, app configuration, schema coverage, pagination, and platform behavior remain owned by `lark-cli`.
 - **Agent-oriented defaults**: command output is compact and stable enough for shell-based agents to inspect without pulling large JSON payloads by default.
-- **Safer mutations**: curated write commands require either `--dry-run` or `--execute`, and required arguments are validated before calling `lark-cli`.
+- **Structured response contract**: every success and error includes command identity, status, metadata, and next actions so agents can branch reliably.
+- **Fix-oriented errors**: every error includes a concrete fix action and source classification instead of only raw stderr.
+- **Safer mutations**: curated write commands require exactly one of `--dry-run` or `--execute`, and required arguments are validated before calling `lark-cli`.
 - **Progressive coverage**: high-value workflows get curated wrappers first; everything else remains available through `raw`.
 - **Structured failure modes**: dependency, usage, and upstream errors render as predictable records instead of unbounded stderr.
 
@@ -111,6 +115,7 @@ lark-axi docs fetch --token <doc-token>
 
 # 4. Preview mutations before execution
 lark-axi im send --chat-id oc_xxx --text "hello" --dry-run
+lark-axi im send --chat-id oc_xxx --markdown "# Progress" --dry-run
 lark-axi docs create --title "Weekly" --content "# Progress" --dry-run
 ```
 
@@ -122,24 +127,26 @@ lark-cli auth login --recommend
 
 ## Commands
 
-| Command | Description |
+Run `lark-axi --help` for the current registry and `lark-axi help <command>` for command-specific usage, flags, examples, status, risk class, and response kind.
+
+| Area | Commands |
 | --- | --- |
-| `lark-axi` | Show runtime, auth summary, discovered domains, and next-step hints. |
-| `lark-axi auth status` | Show compact identity state. |
-| `lark-axi calendar agenda` | List upcoming calendar events. |
-| `lark-axi im search --query <text>` | Search messages. |
-| `lark-axi im send --chat-id <oc_xxx> --text <text> --dry-run\|--execute` | Preview or send a message. |
-| `lark-axi docs fetch --token <token>` | Fetch a document preview. |
-| `lark-axi docs create --title <title> --content <markdown> --dry-run\|--execute` | Preview or create a document. |
-| `lark-axi drive search` | Delegate Drive search through generic read handling. |
-| `lark-axi base records` | Delegate Base record listing through generic read handling. |
-| `lark-axi sheets info` | Inspect spreadsheet metadata. |
-| `lark-axi task list` | List tasks assigned to the current identity. |
-| `lark-axi raw <lark-cli args...>` | Delegate uncovered operations to `lark-cli`. |
+| Runtime and auth | `lark-axi`, `auth status` |
+| Calendar | `calendar agenda` |
+| IM | `im search`, `im send` |
+| Docs | `docs fetch`, `docs create` |
+| Drive | `drive search` |
+| Base and Sheets | `base records`, `sheets info` |
+| Tasks | `task list` |
+| Fallback | `raw <lark-cli args...>` |
+
+Commands outside this table are raw-first until they have evidence: fixture-backed upstream arguments/output, wrapper tests, safety tests for write-like routes, executable help examples, and documentation/skill updates.
+Use the checklist in [docs/governance.md](docs/governance.md) before adding any command to the public wrapper surface.
 
 IM IDs:
 
 - `chat_id` identifies a group or P2P conversation and starts with `oc_`.
+- `im send` accepts either `--chat-id oc_xxx` or `--user-id <user_id>` plus exactly one content flag: `--text`, `--markdown`, `--content`, `--image`, `--file`, `--video`, or `--audio`.
 - `message_id` starts with `om_`; sender user IDs start with `ou_`; app IDs start with `cli_`.
 - Use `lark-axi im search --query "hello"` to see matching messages with their `chat_id`.
 - Use `lark-axi raw im +chat-search --query "project"` or `lark-axi raw im +chat-list --types group,p2p` to look up chats directly.
@@ -171,6 +178,14 @@ lark-axi raw api GET /open-apis/calendar/v4/calendars
 ## Output Model
 
 Default output is compact and optimized for agent consumption. It intentionally summarizes large upstream payloads instead of reproducing every field from `lark-cli`.
+Every response has the same semantic envelope in compact and JSON modes:
+
+- `status`: `ok` or `error`
+- `command`: the wrapper command that produced the response
+- `metadata`: command status, risk class, response kind, and command-specific mode when useful
+- `sections`: records, rows, or text blocks
+- `next_actions`: concrete follow-up commands or verification hints
+- `error.source`, `error.retryable`, and `error.fix`: the failure class, retry signal, and specific remediation
 
 Examples:
 
@@ -179,12 +194,20 @@ lark-axi auth status
 ```
 
 ```text
+status:
+  ok: true
+  command: auth status
+  status: curated
+  risk: read
+  response_kind: record
 auth:
   brand: feishu
   identity: user
   default_as: auto
   user: Example User
   note: ""
+next_actions[1]:
+  Run `lark-cli auth login --recommend` if user token is missing.
 ```
 
 Use JSON when exact fields are needed:
@@ -204,7 +227,7 @@ lark-cli auth status
 `lark-axi` uses three practical layers:
 
 1. **Curated wrappers**: stable, compact commands for common agent workflows.
-2. **Generic reads**: small pass-through wrappers for useful read paths such as Drive, Base, Sheets, and Tasks.
+2. **Generic registry-backed routes**: small forwarding wrappers for useful paths that do not need domain-specific normalization yet.
 3. **Raw fallback**: arbitrary `lark-cli` delegation for operations that are not yet modeled.
 
 See [docs/capabilities.md](docs/capabilities.md) for the current coverage table.
@@ -224,14 +247,17 @@ Default posture:
 
 - It never performs login automatically.
 - It surfaces current identity state before encouraging operations.
-- Curated mutations require `--dry-run` or `--execute`.
+- Curated mutations require exactly one of `--dry-run` or `--execute`.
 - Required mutation inputs are validated before invoking `lark-cli`.
 - Dependency stderr stays out of stdout unless `--debug` is requested.
 - Compact previews are preferred before full body retrieval.
 
 For more detail, see [docs/security.md](docs/security.md).
 
+Write-like commands are risk-classified as `write`, `destructive`, `permission`, `external-send`, or `file-system`.
+
 List commands include count metadata (`shown`, `total_observed`, `limit`) so agents can tell whether a compact response was capped. Detail commands truncate large text by default and include a `--full` escape hatch when content is truncated.
+Mutation responses include lifecycle metadata such as mode, risk, identity, target, intended effect, and a verification hint.
 
 ## Agent Skill
 
@@ -269,6 +295,8 @@ Run the full local check:
 ```bash
 npm run check
 ```
+
+Trial order is offline help/usage checks, read-only live checks, dry-run checks, then explicitly approved `--execute` writes against disposable resources. The detailed commands and approval rules are in [docs/governance.md](docs/governance.md) and [docs/testing/lark-axi-live-test-cases.md](docs/testing/lark-axi-live-test-cases.md).
 
 `lark-cli` remains the source of truth for auth, scopes, API coverage, pagination, schema introspection, and Feishu platform behavior. `lark-axi` is the agent interface layer on top.
 

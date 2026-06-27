@@ -1,38 +1,67 @@
 import type { GlobalOptions, RenderDocument } from "../types.js";
 import type { LarkCliAdapter } from "../lark/adapter.js";
 import { UsageError } from "../lark/errors.js";
-import { asRows, countRecord, pickFields, withForwardedGlobals } from "./common.js";
+import { requireMutationApproval } from "../safety/policy.js";
+import type { CommandDefinition } from "./registry.js";
+import { isMutationRisk } from "./registry.js";
+import { asRows, countRecord, pickFields, truncateRowText, withForwardedGlobals } from "./common.js";
 
-interface GenericReadCommand {
-  args: string[];
-  supportsFormat: boolean;
-}
-
-const READ_COMMANDS: Record<string, GenericReadCommand> = {
-  "drive search": { args: ["drive", "+search"], supportsFormat: true },
-  "base records": { args: ["base", "+record-list"], supportsFormat: true },
-  "sheets info": { args: ["sheets", "+info"], supportsFormat: false },
-  "task list": { args: ["task", "+get-my-tasks"], supportsFormat: true },
-  "markdown fetch": { args: ["markdown", "+fetch"], supportsFormat: false }
-};
-
-export async function genericRead(adapter: LarkCliAdapter, key: string, extra: string[], options: GlobalOptions): Promise<RenderDocument> {
-  const command = READ_COMMANDS[key];
-  if (!command) throw new UsageError(`Unsupported command '${key}'`, "Run `lark-axi --help` for supported commands.");
-  const formatArgs = command.supportsFormat ? ["--format", "json"] : [];
-  const value = await adapter.json(withForwardedGlobals([...command.args, ...extra, ...formatArgs], options));
-  const allRows = pickFields(asRows(value), options.fields);
+export async function genericRead(adapter: LarkCliAdapter, definition: CommandDefinition, extra: string[], options: GlobalOptions): Promise<RenderDocument> {
+  const upstream = definition.upstream;
+  const key = definition.key;
+  if (!upstream) throw new UsageError(`Unsupported command '${key}'`, "Run `lark-axi --help` for supported commands.");
+  const formatArgs = upstream.supportsFormat ? ["--format", "json"] : [];
+  const value = await adapter.json(withForwardedGlobals([...upstream.args, ...extra, ...formatArgs], options));
+  const fields = options.fields ?? definition?.defaultFields;
+  const allRows = pickFields(asRows(value).map((row) => truncateRowText(row, options.full)), fields);
   const limit = options.limit ?? 20;
   const rows = allRows.slice(0, limit);
   const name = key.replace(" ", "_");
   return {
     sections: [
       { name: `${name}_count`, record: countRecord(allRows, rows.length, limit) },
-      { name, rows, fields: options.fields, empty: `0 results for ${key}` }
+      { name, rows, fields, empty: definition?.empty ?? `0 results for ${key}` }
     ],
     help:
       allRows.length > rows.length
         ? [`Run \`lark-axi ${key} --limit <n>\` to show more results.`]
         : ["Use `lark-axi raw ...` for unsupported lark-cli operations."]
+  };
+}
+
+export async function genericMutation(
+  adapter: LarkCliAdapter,
+  definition: CommandDefinition,
+  extra: string[],
+  args: { execute: boolean; dryRun: boolean },
+  options: GlobalOptions
+): Promise<RenderDocument> {
+  if (!definition.upstream) throw new UsageError(`Unsupported command '${definition.key}'`, "Run `lark-axi --help` for supported commands.");
+  if (!isMutationRisk(definition.risk)) {
+    throw new UsageError(`Command '${definition.key}' is not a mutation`, "Use the read form or raw fallback.");
+  }
+  const safetyArgs = requireMutationApproval({ command: definition.key, execute: args.execute, dryRun: args.dryRun, risk: definition.risk });
+  const formatArgs = definition.upstream.supportsFormat ? ["--format", "json"] : [];
+  const value = await adapter.json(withForwardedGlobals([...definition.upstream.args, ...extra, ...safetyArgs, ...formatArgs], options));
+  const rows = asRows(value);
+  const mode = args.dryRun ? "dry-run" : "execute";
+  return {
+    metadata: { mode, risk: definition.risk },
+    sections: [
+      {
+        name: args.dryRun ? "dry_run" : "result",
+        record: {
+          mode,
+          risk: definition.risk,
+          identity: options.as ?? "auto",
+          target: extra.join(" ") || "(flags only)",
+          intended_effect: args.dryRun ? `preview ${definition.key} without executing` : `execute ${definition.key}`,
+          ...(rows[0] ?? { ok: true })
+        }
+      }
+    ],
+    nextActions: args.dryRun
+      ? [`Re-run \`lark-axi ${definition.key}\` with --execute only after the target and content are approved.`]
+      : [`Verify the result with a read command or \`lark-axi raw ...\` when no curated read exists.`]
   };
 }
