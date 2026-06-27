@@ -35,4 +35,16 @@ Flags:
       { domain: "im", command: "messages", description: "messages operations", status: "pass-through" }
     ]);
   });
+
+  it("classifies contact search-user shortcut as contact search coverage", () => {
+    const commands = parseDomainCommands("contact", `Available Commands:
+  +search-user      Search users
+
+Flags:
+`);
+
+    expect(commands).toEqual([
+      { domain: "contact", command: "+search-user", description: "Search users", status: "generic" }
+    ]);
+  });
 });

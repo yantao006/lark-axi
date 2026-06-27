@@ -73,6 +73,7 @@ function normalizeShortcutName(name: string): string {
   return shortcut
     .replace(/^get-my-tasks$/, "list")
     .replace(/^workbook-info$/, "info")
+    .replace(/^search-user$/, "search")
     .replace(/^messages-search$/, "search")
     .replace(/^messages-send$/, "send")
     .replace(/^messages-reply$/, "reply")
